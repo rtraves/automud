@@ -1,0 +1,40 @@
+{
+    "id": "area1",
+    "name": "Area 1",
+    "rooms": [
+      {
+        "id": "area1_room1",
+        "title": "Area 1 - Room 1",
+        "description": "This is the first room in Area 1.",
+        "exits": [
+          {
+            "direction": "east",
+            "roomId": "area1_room2"
+          }
+        ]
+      },
+      {
+        "id": "area1_room2",
+        "title": "Area 1 - Room 2",
+        "description": "This is the second room in Area 1.",
+        "exits": [
+          {
+            "direction": "west",
+            "roomId": "area1_room1"
+          }
+        ]
+      },
+      {
+        "id": "area1_room3",
+        "title": "Area 1 - Room 3",
+        "description": "This is the third room in Area 1.",
+        "exits": [
+          {
+            "direction": "west",
+            "roomId": "area1_room2"
+          }
+        ]
+      }
+    ]
+  }
+  
