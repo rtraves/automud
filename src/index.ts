@@ -1,17 +1,13 @@
 import * as net from 'net';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as crypto from 'crypto';
 import { Player } from './player';
 import { Room, Exit } from './room';
 import { CommandName, parseCommand, Command } from './command-parser';
 import { AnsiColor, colorize } from './ansi-colors';
-
-interface User {
-  username: string;
-  password: string;
-}
-
+import { User, findUser, hashPassword, isValidPassword } from '../utils/user-utils';
+import { loadArea, findExitByDirection } from '../utils/area-utils';
+import { broadcastToRoom, broadcastToAll } from '../utils/broadcast-utils';
 
 const PORT = parseInt(process.env.PORT as string, 10) || 3000;
 
@@ -21,57 +17,11 @@ const rooms: Map<string, Room> = new Map();
 const usersPath = path.join(__dirname, '..', 'users.json');
 const users: User[] = JSON.parse(fs.readFileSync(usersPath, 'utf-8'));
 
-function findUser(username: string): User | undefined {
-  return users.find((user) => user.username.toLowerCase() === username.toLowerCase());
-}
-
-function hashPassword(password: string): string {
-  const hash = crypto.createHash('sha256');
-  hash.update(password);
-  return hash.digest('hex');
-}
-
-function isValidPassword(user: User, password: string): boolean {
-  return user.password === hashPassword(password);
-}
-function loadArea(areaPath: string): Map<string, Room> {
-  const areaJson = fs.readFileSync(areaPath, 'utf-8');
-  const areaData = JSON.parse(areaJson);
-
-  const areaRooms: Map<string, Room> = new Map();
-
-  for (const roomData of areaData.rooms) {
-    const room = new Room(roomData.id, roomData.title, roomData.description, roomData.exits as Exit[]);
-    areaRooms.set(room.id, room);
-  }
-
-  return areaRooms;
-}
-
 const areaPath = path.join(__dirname, '..', 'areas', 'area1.json');
 const areaRooms = loadArea(areaPath);
 
 for (const [roomId, room] of areaRooms.entries()) {
   rooms.set(roomId, room);
-}
-
-function findExitByDirection(room: Room, direction: string): Exit | undefined {
-  return room.exits.find((exit) => exit.direction.startsWith(direction));
-}
-// Add a helper function to broadcast a message to players in the same room
-function broadcastToRoom(message: string, sender: Player) {
-  for (const otherPlayer of players.values()) {
-    if (otherPlayer.currentRoom === sender.currentRoom && otherPlayer.id !== sender.id) {
-      otherPlayer.socket.write(message);
-    }
-  }
-}
-
-// Add a helper function to broadcast a message to all connected players
-function broadcastToAll(message: string, sender?: Player) {
-  for (const otherPlayer of players.values()) {
-      otherPlayer.socket.write(message);
-  }
 }
 
 const server = net.createServer((socket) => {
@@ -151,11 +101,11 @@ const server = net.createServer((socket) => {
         case CommandName.Say:
           const roomMessage = `${player.name} says: ${command.args.join(' ')}\r\n`;
           socket.write(roomMessage);
-          broadcastToRoom(roomMessage, player);
+          broadcastToRoom(roomMessage, player, players);
           break;
         case CommandName.Chat:
           const globalMessage = `${AnsiColor.Red}[Global] ${player.name}: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
-          broadcastToAll(globalMessage, player);
+          broadcastToAll(globalMessage, players, player);
           break;
         default:
           socket.write(`You said: ${input}\r\n`);
@@ -175,4 +125,3 @@ const server = net.createServer((socket) => {
   server.listen(PORT, () => {
     console.log(`Telnet server is running on port ${PORT}`);
   });
-  
