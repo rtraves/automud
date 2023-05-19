@@ -5,9 +5,9 @@ import { Player } from './player';
 import { Room, Exit } from './room';
 import { CommandName, parseCommand, Command } from './command-parser';
 import { AnsiColor, colorize } from './ansi-colors';
-import { User, findUser, hashPassword, isValidPassword } from '../utils/user-utils';
-import { loadArea, findExitByDirection } from '../utils/area-utils';
-import { broadcastToRoom, broadcastToAll } from '../utils/broadcast-utils';
+import { User, findUser, hashPassword, isValidPassword } from './user-utils';
+import { loadArea, findExitByDirection } from './area-utils';
+import { broadcastToRoom, broadcastToAll } from './broadcast-utils';
 
 const PORT = parseInt(process.env.PORT as string, 10) || 3000;
 

@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { Room, Exit } from '../src/room';
+import { Room, Exit } from './room';
 
 export function loadArea(areaPath: string): Map<string, Room> {
   const areaJson = fs.readFileSync(areaPath, 'utf-8');
