@@ -51,7 +51,7 @@ const server = net.createServer((socket) => {
         expectingName = false;
         expectingPassword = true;
       } else {
-        socket.write('Invalid username. Enter your username: ');
+        socket.write('Invalid Name. Enter your name: ');
       }
     } else if (expectingPassword) {
       const user = findUser(player.name);
