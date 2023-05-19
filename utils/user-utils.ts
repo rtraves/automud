@@ -11,7 +11,9 @@ const usersPath = path.join(__dirname, '..', 'users.json');
 const users: User[] = JSON.parse(fs.readFileSync(usersPath, 'utf-8'));
 
 export function findUser(username: string): User | undefined {
-  return users.find((user) => user.username.toLowerCase() === username.toLowerCase());
+  if (users.find(user => user.username === username)) {
+    return;
+  }
 }
 
 export function hashPassword(password: string): string {

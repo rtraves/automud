@@ -35,7 +35,7 @@ const server = net.createServer((socket) => {
   players.set(playerId, player);
 
   socket.write('Welcome to the MUD!\r\n');
-  socket.write('Enter your name: ');
+  socket.write('Enter your username: ');
 
   let expectingName = true;
   let expectingPassword = false;
@@ -51,7 +51,7 @@ const server = net.createServer((socket) => {
         expectingName = false;
         expectingPassword = true;
       } else {
-        socket.write('Invalid username. Enter your name: ');
+        socket.write('Invalid username. Enter your username: ');
       }
     } else if (expectingPassword) {
       const user = findUser(player.name);
