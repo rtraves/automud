@@ -5,7 +5,7 @@ import { Player } from './player';
 import { Room, Exit } from './room';
 import { CommandName, parseCommand, Command } from './command-parser';
 import { AnsiColor, colorize } from './ansi-colors';
-import { User, findUser, hashPassword, isValidPassword } from './user-utils';
+import { User, addUser, findUser, hashPassword, isValidPassword } from './user-utils';
 import { loadArea, findExitByDirection } from './area-utils';
 import { broadcastToRoom, broadcastToAll } from './broadcast-utils';
 
@@ -35,15 +35,18 @@ const server = net.createServer((socket) => {
   players.set(playerId, player);
 
   socket.write('Welcome to the MUD!\r\n');
-  socket.write('Enter your username: ');
+  socket.write('Enter your username or type `new` to create a new user: ');
 
   let expectingName = true;
   let expectingPassword = false;
 
   socket.on('data', (data) => {
     const input = data.toString().trim();
-  
-    if (expectingName) {
+    if (input === 'new') {
+      socket.write('Enter your new username: ');
+      // todo handle new user
+    } 
+    else if (expectingName) {
       const user = findUser(input);
       if (user) {
         player.name = input;

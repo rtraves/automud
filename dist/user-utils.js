@@ -28,11 +28,14 @@ const crypto = __importStar(require("crypto"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const usersPath = path.join(__dirname, '..', 'users.json');
-const users = JSON.parse(fs.readFileSync(usersPath, 'utf-8'));
+const users = Object.values(JSON.parse(fs.readFileSync(usersPath, 'utf-8')));
 function findUser(username) {
-    if (users.find(user => user.username === username)) {
-        return;
+    for (const user of users) {
+        if (user.username === username) {
+            return user;
+        }
     }
+    return undefined;
 }
 exports.findUser = findUser;
 function hashPassword(password) {

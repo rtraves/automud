@@ -8,12 +8,19 @@ export interface User {
 }
 
 const usersPath = path.join(__dirname, '..', 'users.json');
-const users: User[] = JSON.parse(fs.readFileSync(usersPath, 'utf-8'));
+const users: User[] = Object.values(JSON.parse(fs.readFileSync(usersPath, 'utf-8')));
 
-export function findUser(username: string): User | undefined {
-  if (users.find(user => user.username === username)) {
-    return;
+export function findUser(username:string): User | undefined {
+  for (const user of users) {
+    if (user.username === username) {
+      return user;
+    }
   }
+  return undefined;
+}
+
+export function addUser(username:string): void {
+
 }
 
 export function hashPassword(password: string): string {
