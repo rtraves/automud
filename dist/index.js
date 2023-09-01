@@ -68,7 +68,6 @@ const server = net.createServer((socket) => {
                 expectingPassword = true;
             }
             else {
-                console.log(expectingName);
                 socket.write('Invalid Name. Enter your name: ');
                 // Set the player's name to the new username for the new user creation process
                 player.name = input;
