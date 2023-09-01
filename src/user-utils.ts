@@ -19,8 +19,23 @@ export function findUser(username:string): User | undefined {
   return undefined;
 }
 
-export function addUser(username:string): void {
+export function addUser(username: string, password: string): void {
+  // Check if the username already exists
+  if (findUser(username)) {
+    throw new Error(`Username "${username}" already exists. Please choose a different username.`);
+  }
 
+  const hashedPassword = hashPassword(password);
+  const newUser: User = {
+    username: username,
+    password: hashedPassword,
+  };
+
+  // Add the new user to the list of users
+  users.push(newUser);
+
+  // Save the updated list of users to the file
+  fs.writeFileSync(usersPath, JSON.stringify(users), 'utf-8');
 }
 
 export function hashPassword(password: string): string {

@@ -50,12 +50,16 @@ const server = net.createServer((socket) => {
     const player = new player_1.Player(playerId, 'area1_room1', socket);
     players.set(playerId, player);
     socket.write('Welcome to the MUD!\r\n');
-    socket.write('Enter your username: ');
+    socket.write('Enter your username or type `new` to create a new user: ');
     let expectingName = true;
     let expectingPassword = false;
     socket.on('data', (data) => {
         const input = data.toString().trim();
-        if (expectingName) {
+        if (input === 'new') {
+            socket.write('Enter your new username: ');
+            expectingName = false;
+        }
+        else if (expectingName) {
             const user = (0, user_utils_1.findUser)(input);
             if (user) {
                 player.name = input;
@@ -64,18 +68,26 @@ const server = net.createServer((socket) => {
                 expectingPassword = true;
             }
             else {
+                console.log(expectingName);
                 socket.write('Invalid Name. Enter your name: ');
+                // Set the player's name to the new username for the new user creation process
+                player.name = input;
+                expectingName = false;
+                expectingPassword = true;
             }
         }
         else if (expectingPassword) {
-            const user = (0, user_utils_1.findUser)(player.name);
-            if (user && (0, user_utils_1.isValidPassword)(user, input)) {
-                socket.write(`Hello, ${player.name}!\r\n`);
-                expectingPassword = false;
+            // If expectingPassword is true, it means the user provided a password.
+            // We will use the addUser function to create a new user in this section.
+            const newPassword = input;
+            try {
+                (0, user_utils_1.addUser)(player.name, newPassword);
+                socket.write(`Hello, ${player.name}! Your account has been created.\r\n`);
             }
-            else {
-                socket.write('Invalid password. Enter your password: ');
+            catch (error) {
+                socket.write(`${error.message}\r\n`);
             }
+            expectingPassword = false;
         }
         else {
             const command = (0, command_parser_1.parseCommand)(input);

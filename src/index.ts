@@ -44,9 +44,9 @@ const server = net.createServer((socket) => {
     const input = data.toString().trim();
     if (input === 'new') {
       socket.write('Enter your new username: ');
-      // todo handle new user
-    } 
-    else if (expectingName) {
+      expectingName = false;
+      
+    } else if (expectingName) {
       const user = findUser(input);
       if (user) {
         player.name = input;
@@ -55,15 +55,22 @@ const server = net.createServer((socket) => {
         expectingPassword = true;
       } else {
         socket.write('Invalid Name. Enter your name: ');
+        // Set the player's name to the new username for the new user creation process
+        player.name = input;
+        expectingName = false;
+        expectingPassword = true;
       }
     } else if (expectingPassword) {
-      const user = findUser(player.name);
-      if (user && isValidPassword(user, input)) {
-        socket.write(`Hello, ${player.name}!\r\n`);
-        expectingPassword = false;
-      } else {
-        socket.write('Invalid password. Enter your password: ');
+      // If expectingPassword is true, it means the user provided a password.
+      // We will use the addUser function to create a new user in this section.
+      const newPassword = input;
+      try {
+        addUser(player.name, newPassword);
+        socket.write(`Hello, ${player.name}! Your account has been created.\r\n`);
+      } catch (error: any) {
+        socket.write(`${error.message}\r\n`);
       }
+      expectingPassword = false;
     } else {
       const command: Command = parseCommand(input);
 

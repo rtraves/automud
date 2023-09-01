@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isValidPassword = exports.hashPassword = exports.findUser = void 0;
+exports.isValidPassword = exports.hashPassword = exports.addUser = exports.findUser = void 0;
 const crypto = __importStar(require("crypto"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
@@ -38,6 +38,22 @@ function findUser(username) {
     return undefined;
 }
 exports.findUser = findUser;
+function addUser(username, password) {
+    // Check if the username already exists
+    if (findUser(username)) {
+        throw new Error(`Username "${username}" already exists. Please choose a different username.`);
+    }
+    const hashedPassword = hashPassword(password);
+    const newUser = {
+        username: username,
+        password: hashedPassword,
+    };
+    // Add the new user to the list of users
+    users.push(newUser);
+    // Save the updated list of users to the file
+    fs.writeFileSync(usersPath, JSON.stringify(users), 'utf-8');
+}
+exports.addUser = addUser;
 function hashPassword(password) {
     const hash = crypto.createHash('sha256');
     hash.update(password);
