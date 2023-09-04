@@ -6,6 +6,8 @@ export class Player {
     inventory: string[];
     disconnected: boolean;
     socket: net.Socket;
+    expectingName: boolean;
+    expectingPassword: boolean;
   
     constructor(id: string, currentRoom: string, socket: net.Socket) {
       this.id = id;
@@ -14,6 +16,8 @@ export class Player {
       this.inventory = [];
       this.disconnected = false;
       this.socket = socket;
+      this.expectingName = true;
+      this.expectingPassword = false;
     }
   
     addItem(item: string): void {

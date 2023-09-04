@@ -21,6 +21,10 @@
           {
             "direction": "west",
             "roomId": "area1_room1"
+          },
+          {
+            "direction": "east",
+            "roomId": "area1_room3"
           }
         ]
       },
