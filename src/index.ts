@@ -8,6 +8,7 @@ import { AnsiColor, colorize } from './ansi-colors';
 import { User, addUser, findUser, hashPassword, isValidPassword } from './user-utils';
 import { loadArea, findExitByDirection } from './area-utils';
 import { broadcastToRoom, broadcastToAll } from './broadcast-utils';
+import { handleLogin } from './login';
 
 const PORT = parseInt(process.env.PORT as string, 10) || 3000;
 
@@ -37,40 +38,10 @@ const server = net.createServer((socket) => {
   socket.write('Welcome to the MUD!\r\n');
   socket.write('Enter your username or type `new` to create a new user: ');
 
-  let expectingName = true;
-  let expectingPassword = false;
-
   socket.on('data', (data) => {
     const input = data.toString().trim();
-    if (input === 'new') {
-      socket.write('Enter your new username: ');
-      expectingName = false;
-      
-    } else if (expectingName) {
-      const user = findUser(input);
-      if (user) {
-        player.name = input;
-        socket.write('Enter your password: ');
-        expectingName = false;
-        expectingPassword = true;
-      } else {
-        socket.write('Invalid Name. Enter your name: ');
-        // Set the player's name to the new username for the new user creation process
-        player.name = input;
-        expectingName = false;
-        expectingPassword = true;
-      }
-    } else if (expectingPassword) {
-      // If expectingPassword is true, it means the user provided a password.
-      // We will use the addUser function to create a new user in this section.
-      const newPassword = input;
-      try {
-        addUser(player.name, newPassword);
-        socket.write(`Hello, ${player.name}! Your account has been created.\r\n`);
-      } catch (error: any) {
-        socket.write(`${error.message}\r\n`);
-      }
-      expectingPassword = false;
+    if (!player.isLoggedIn) {
+      handleLogin(player, socket, input);
     } else {
       const command: Command = parseCommand(input);
 

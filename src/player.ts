@@ -8,6 +8,7 @@ export class Player {
     socket: net.Socket;
     expectingName: boolean;
     expectingPassword: boolean;
+    isLoggedIn: boolean;
   
     constructor(id: string, currentRoom: string, socket: net.Socket) {
       this.id = id;
@@ -18,6 +19,7 @@ export class Player {
       this.socket = socket;
       this.expectingName = true;
       this.expectingPassword = false;
+      this.isLoggedIn = false;
     }
   
     addItem(item: string): void {
