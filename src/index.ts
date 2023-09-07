@@ -38,9 +38,6 @@ const server = net.createServer((socket) => {
   socket.write('Welcome to the MUD!\r\n');
   socket.write('Enter your username or type `new` to create a new user: ');
 
-  let expectingName = true;
-  let expectingPassword = false;
-
   socket.on('data', (data) => {
     const input = data.toString().trim();
     if (!player.isLoggedIn) {
