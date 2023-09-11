@@ -23,7 +23,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isValidPassword = exports.hashPassword = exports.addUser = exports.findUser = void 0;
+exports.isValidPassword = exports.hashPassword = exports.login = exports.addUser = exports.findUser = void 0;
 const crypto = __importStar(require("crypto"));
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
@@ -54,6 +54,14 @@ function addUser(username, password) {
     fs.writeFileSync(usersPath, JSON.stringify(users), 'utf-8');
 }
 exports.addUser = addUser;
+function login(username, password) {
+    const user = findUser(username);
+    if (!user) {
+        return false; // User does not exist
+    }
+    return isValidPassword(user, password);
+}
+exports.login = login;
 function hashPassword(password) {
     const hash = crypto.createHash('sha256');
     hash.update(password);

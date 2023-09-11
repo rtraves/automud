@@ -13,6 +13,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "tsc": "^2.0.4",
+    "typescript": "^5.2.2",
     "ws": "^8.13.0"
   },
   "devDependencies": {

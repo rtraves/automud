@@ -12,6 +12,7 @@ class Player {
         this.expectingName = true;
         this.expectingPassword = false;
         this.isLoggedIn = false;
+        this.newPlayer = false;
     }
     addItem(item) {
         this.inventory.push(item);
