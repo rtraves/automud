@@ -12,7 +12,7 @@ var AnsiColor;
     AnsiColor["Magenta"] = "\u001B[35m";
     AnsiColor["Cyan"] = "\u001B[36m";
     AnsiColor["White"] = "\u001B[37m";
-})(AnsiColor || (exports.AnsiColor = AnsiColor = {}));
+})(AnsiColor = exports.AnsiColor || (exports.AnsiColor = {}));
 function colorize(text, color) {
     return color + text + AnsiColor.Reset;
 }

@@ -29,16 +29,16 @@
         ]
       },
       {
-        "id": "area1_room3",
-        "title": "Area 1 - Room 3",
-        "description": "This is the third room in Area 1.",
-        "exits": [
-          {
-            "direction": "west",
-            "roomId": "area1_room2"
-          }
-        ]
-      }
-    ]
-  }
+      "id": "area1_room3",
+      "title": "Area 1 - Room 3",
+      "description": "This is the third room in Area 1.",
+      "exits": [
+        {
+          "direction": "west",
+          "roomId": "area1_room2"
+        }
+      ]
+    }
+  ]
+}
   
