@@ -38,6 +38,15 @@ export function addUser(username: string, password: string): void {
   fs.writeFileSync(usersPath, JSON.stringify(users), 'utf-8');
 }
 
+export function login(username: string, password: string): boolean {
+  const user = findUser(username);
+  if (!user) {
+    return false; // User does not exist
+  }
+
+  return isValidPassword(user, password);
+}
+
 export function hashPassword(password: string): string {
   const hash = crypto.createHash('sha256');
   hash.update(password);

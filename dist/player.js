@@ -9,6 +9,10 @@ class Player {
         this.inventory = [];
         this.disconnected = false;
         this.socket = socket;
+        this.expectingName = true;
+        this.expectingPassword = false;
+        this.isLoggedIn = false;
+        this.newPlayer = false;
     }
     addItem(item) {
         this.inventory.push(item);

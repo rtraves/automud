@@ -29,9 +29,9 @@ const path = __importStar(require("path"));
 const player_1 = require("./player");
 const command_parser_1 = require("./command-parser");
 const ansi_colors_1 = require("./ansi-colors");
-const user_utils_1 = require("./user-utils");
 const area_utils_1 = require("./area-utils");
 const broadcast_utils_1 = require("./broadcast-utils");
+const login_1 = require("./login");
 const PORT = parseInt(process.env.PORT, 10) || 3000;
 const players = new Map();
 const rooms = new Map();
@@ -51,42 +51,10 @@ const server = net.createServer((socket) => {
     players.set(playerId, player);
     socket.write('Welcome to the MUD!\r\n');
     socket.write('Enter your username or type `new` to create a new user: ');
-    let expectingName = true;
-    let expectingPassword = false;
     socket.on('data', (data) => {
         const input = data.toString().trim();
-        if (input === 'new') {
-            socket.write('Enter your new username: ');
-            expectingName = false;
-        }
-        else if (expectingName) {
-            const user = (0, user_utils_1.findUser)(input);
-            if (user) {
-                player.name = input;
-                socket.write('Enter your password: ');
-                expectingName = false;
-                expectingPassword = true;
-            }
-            else {
-                socket.write('Invalid Name. Enter your name: ');
-                // Set the player's name to the new username for the new user creation process
-                player.name = input;
-                expectingName = false;
-                expectingPassword = true;
-            }
-        }
-        else if (expectingPassword) {
-            // If expectingPassword is true, it means the user provided a password.
-            // We will use the addUser function to create a new user in this section.
-            const newPassword = input;
-            try {
-                (0, user_utils_1.addUser)(player.name, newPassword);
-                socket.write(`Hello, ${player.name}! Your account has been created.\r\n`);
-            }
-            catch (error) {
-                socket.write(`${error.message}\r\n`);
-            }
-            expectingPassword = false;
+        if (!player.isLoggedIn) {
+            (0, login_1.handleLogin)(player, socket, input);
         }
         else {
             const command = (0, command_parser_1.parseCommand)(input);
