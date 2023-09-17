@@ -47,20 +47,7 @@ const server = net.createServer((socket) => {
 
       switch (command.name) {
         case CommandName.Move:
-          const currentRoom = rooms.get(player.currentRoom);
-          if (currentRoom) {
-            const direction = command.args[0];
-            const exit = findExitByDirection(currentRoom, direction);
-
-            if (exit) {
-              player.currentRoom = exit.roomId;
-              socket.write(`You move ${direction}.\r\n`);
-            } else {
-              socket.write(`There's no exit in that direction.\r\n`);
-            }
-          } else {
-            socket.write('An error occurred. The current room does not exist.\r\n');
-          }
+        handleMoveCommand(player, command);
           break;
         case CommandName.Look:
           const room = rooms.get(player.currentRoom);
@@ -96,7 +83,8 @@ const server = net.createServer((socket) => {
   
     socket.on('end', () => {
       console.log(`A user (${player.name}) disconnected`);
-      players.delete(playerId);
+      // todo socket error: write after end bug
+      // players.delete(playerId);
     });
     socket.on('error', (err) => {
         console.error(`Socket error: ${err.message}`);
@@ -106,3 +94,34 @@ const server = net.createServer((socket) => {
   server.listen(PORT, () => {
     console.log(`Telnet server is running on port ${PORT}`);
   });
+  // TODO: move this to a separate file
+  function handleMoveCommand(player: Player, command: Command) {
+    const currentRoom = rooms.get(player.currentRoom);
+    if (!currentRoom) {
+      player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
+      return;
+    }
+
+    const exit = findExitByDirection(currentRoom, command.args[0]);
+
+    if (!exit) {
+      player.socket.write(`You cannot go ${command.args[0]} from here.\r\n`);
+      return;
+    }
+
+    const newRoom = rooms.get(exit.roomId);
+
+    if (!newRoom) {
+      player.socket.write(`Error: Room ${exit.roomId} not found.\r\n`);
+      return;
+    }
+
+    player.currentRoom = newRoom.id;
+
+    // Send the room description to the player's socket
+    player.socket.write(colorize(`${currentRoom.title}\r\n`, AnsiColor.Cyan));
+    player.socket.write(colorize(`${currentRoom.description}\r\n`, AnsiColor.Green));
+
+    const exitStrings = currentRoom.exits.map((exit) => `${exit.direction}`);
+    player.socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AnsiColor.Yellow));
+  }

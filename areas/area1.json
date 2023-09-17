@@ -36,6 +36,36 @@
         {
           "direction": "west",
           "roomId": "area1_room2"
+        },
+        {
+          "direction": "east",
+          "roomId": "area1_room4"
+        }
+      ]
+    },
+    {
+      "id": "area1_room4",
+      "title": "Area 1 - Room 4",
+      "description": "This is the fourth room in Area 1.",
+      "exits": [
+        {
+          "direction": "west",
+          "roomId": "area1_room3"
+        },
+        {
+          "direction": "north",
+          "roomId": "area1_room5"
+        }
+      ]
+    },
+    {
+      "id": "area1_room5",
+      "title": "Area 1 - Room 5",
+      "description": "This is the fifth room in Area 1.",
+      "exits": [
+        {
+          "direction": "south",
+          "roomId": "area1_room4"
         }
       ]
     }
