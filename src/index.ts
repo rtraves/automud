@@ -119,9 +119,9 @@ const server = net.createServer((socket) => {
     player.currentRoom = newRoom.id;
 
     // Send the room description to the player's socket
-    player.socket.write(colorize(`${currentRoom.title}\r\n`, AnsiColor.Cyan));
-    player.socket.write(colorize(`${currentRoom.description}\r\n`, AnsiColor.Green));
+    player.socket.write(colorize(`${newRoom.title}\r\n`, AnsiColor.Cyan));
+    player.socket.write(colorize(`${newRoom.description}\r\n`, AnsiColor.Green));
 
-    const exitStrings = currentRoom.exits.map((exit) => `${exit.direction}`);
+    const exitStrings = newRoom.exits.map((exit) => `${exit.direction}`);
     player.socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AnsiColor.Yellow));
   }

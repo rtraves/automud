@@ -104,6 +104,7 @@ const server = net.createServer((socket) => {
 server.listen(PORT, () => {
     console.log(`Telnet server is running on port ${PORT}`);
 });
+// TODO: move this to a separate file
 function handleMoveCommand(player, command) {
     const currentRoom = rooms.get(player.currentRoom);
     if (!currentRoom) {
@@ -122,8 +123,8 @@ function handleMoveCommand(player, command) {
     }
     player.currentRoom = newRoom.id;
     // Send the room description to the player's socket
-    player.socket.write((0, ansi_colors_1.colorize)(`${currentRoom.title}\r\n`, ansi_colors_1.AnsiColor.Cyan));
-    player.socket.write((0, ansi_colors_1.colorize)(`${currentRoom.description}\r\n`, ansi_colors_1.AnsiColor.Green));
-    const exitStrings = currentRoom.exits.map((exit) => `${exit.direction}`);
+    player.socket.write((0, ansi_colors_1.colorize)(`${newRoom.title}\r\n`, ansi_colors_1.AnsiColor.Cyan));
+    player.socket.write((0, ansi_colors_1.colorize)(`${newRoom.description}\r\n`, ansi_colors_1.AnsiColor.Green));
+    const exitStrings = newRoom.exits.map((exit) => `${exit.direction}`);
     player.socket.write((0, ansi_colors_1.colorize)(`Exits: ${exitStrings.join(', ')}\r\n`, ansi_colors_1.AnsiColor.Yellow));
 }
