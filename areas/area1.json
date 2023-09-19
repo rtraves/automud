@@ -66,6 +66,21 @@
         {
           "direction": "south",
           "roomId": "area1_room4"
+        },
+        {
+          "direction": "north",
+          "roomId": "area1_room6"
+        }
+      ]
+    },
+    {
+      "id": "area1_room6",
+      "title": "Area 1 - Room 6",
+      "description": "This is the sixth room in Area 1.",
+      "exits": [
+        {
+          "direction": "south",
+          "roomId": "area1_room5"
         }
       ]
     }

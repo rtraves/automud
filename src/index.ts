@@ -75,6 +75,12 @@ const server = net.createServer((socket) => {
           const globalMessage = `${AnsiColor.Red}[Global] ${player.name}: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
           broadcastToAll(globalMessage, players, player);
           break;
+        case CommandName.Who:
+          handleWhoCommand(player);
+          break;
+        case CommandName.Inventory:
+          handleInventoryCommand(player);
+          break;
         default:
           socket.write(`You said: ${input}\r\n`);
         }
@@ -125,3 +131,21 @@ const server = net.createServer((socket) => {
     const exitStrings = newRoom.exits.map((exit) => `${exit.direction}`);
     player.socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AnsiColor.Yellow));
   }
+  // TODO: move this to a separate file
+  function handleWhoCommand(player: Player) {
+    const playerNames = Array.from(players.values()).map((p) => p.name);
+    player.socket.write(`\n ${AnsiColor.Cyan}Players online:\n----------------------------\n ${playerNames.join(', ')}\r\n`);
+  }
+  // TODO: move this to a separate file
+  function handleInventoryCommand(player: Player) {
+    if (player.inventory.length === 0) {
+      player.socket.write('You are not carrying anything.\r\n');
+    } else {
+      player.socket.write('You are carrying:\r\n');
+      player.inventory.forEach((item) => {
+        // TODO: colorize items and probably do something like item.name
+        player.socket.write(`- ${item}\r\n`);
+      });
+    }
+  }
+  
