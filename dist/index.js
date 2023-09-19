@@ -79,7 +79,7 @@ const server = net.createServer((socket) => {
                     socket.write('Goodbye!\r\n');
                     socket.end();
                 case command_parser_1.CommandName.Say:
-                    const roomMessage = `${player.name} says: ${command.args.join(' ')}\r\n`;
+                    const roomMessage = `${ansi_colors_1.AnsiColor.LightBlue}${player.name} says: ${command.args.join(' ')}${ansi_colors_1.AnsiColor.Reset}\r\n`;
                     socket.write(roomMessage);
                     (0, broadcast_utils_1.broadcastToRoom)(roomMessage, player, players);
                     break;
@@ -93,8 +93,12 @@ const server = net.createServer((socket) => {
                 case command_parser_1.CommandName.Inventory:
                     handleInventoryCommand(player);
                     break;
+                case 'help':
+                    handleHelpCommand(player);
+                    break;
                 default:
-                    socket.write(`You said: ${input}\r\n`);
+                    // socket.write('Unknown command. Type `help` for a list of commands.\r\n');
+                    socket.write(`${ansi_colors_1.AnsiColor.Reset}You said: ${input}\r\n`);
             }
         }
     });
@@ -136,8 +140,9 @@ function handleMoveCommand(player, command) {
 }
 // TODO: move this to a separate file
 function handleWhoCommand(player) {
-    const playerNames = Array.from(players.values()).map((p) => p.name);
-    player.socket.write(`\n ${ansi_colors_1.AnsiColor.Cyan}Players online:\n----------------------------\n ${playerNames.join(', ')}\r\n`);
+    const playerNames = Array.from(players.values()).map((p) => p.name).join(',\n');
+    const message = `Players online:\n----------------------------\n${playerNames}\r\n`;
+    player.socket.write(`${ansi_colors_1.AnsiColor.Cyan}${message}${ansi_colors_1.AnsiColor.Reset}`);
 }
 // TODO: move this to a separate file
 function handleInventoryCommand(player) {
@@ -147,7 +152,20 @@ function handleInventoryCommand(player) {
     else {
         player.socket.write('You are carrying:\r\n');
         player.inventory.forEach((item) => {
+            // TODO: colorize items and probably do something like item.name
             player.socket.write(`- ${item}\r\n`);
         });
     }
+}
+// TODO: move this to a separate file
+function handleHelpCommand(player) {
+    player.socket.write('Available commands:\r\n');
+    player.socket.write('- move (n/e/s/w)\r\n');
+    player.socket.write('- look\r\n');
+    player.socket.write('- quit\r\n');
+    player.socket.write('- say <message>\r\n');
+    player.socket.write('- chat <message>\r\n');
+    player.socket.write('- who\r\n');
+    player.socket.write('- inventory (inv/i)\r\n');
+    player.socket.write('- help\r\n');
 }

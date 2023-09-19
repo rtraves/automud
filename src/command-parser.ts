@@ -11,6 +11,7 @@ export interface Command {
     Chat = 'chat',
     Who = 'who',
     Inventory = 'inventory',
+    Help = 'help',
   }
   
   export function parseCommand(input: string): Command {
@@ -43,7 +44,8 @@ export interface Command {
         case 'inv':
         case 'i':
           return { name: CommandName.Inventory, args };
-
+      case 'help':
+        return { name: CommandName.Help, args };
       default:
         return { name: '', args: [] };
     }

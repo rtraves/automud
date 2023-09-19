@@ -1,11 +1,11 @@
 {
     "id": "area1",
-    "name": "Area 1",
+    "name": "Newhaven Academy",
     "rooms": [
       {
         "id": "area1_room1",
-        "title": "Area 1 - Room 1",
-        "description": "This is the first room in Area 1.",
+        "title": "Newhaven Academy - Room 1",
+        "description": "Welcome to the realms. You can move around using the cardinal directions. Type 'help' for a list of commands.",
         "exits": [
           {
             "direction": "east",

@@ -8,6 +8,8 @@ export enum AnsiColor {
     Magenta = '\x1b[35m',
     Cyan = '\x1b[36m',
     White = '\x1b[37m',
+    Purple = '\x1b[35m',
+    LightBlue = '\x1b[94m',
   }
   
   export function colorize(text: string, color: AnsiColor): string {
