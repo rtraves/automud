@@ -40,52 +40,112 @@ export class GameManager {
         return player;
     }
 
-    handleCommand(player: Player, socket: any, command: Command) {
-      switch (command.name) {
-        case CommandName.Move:
-          const currentRoom = this.rooms.get(player.currentRoom);
-          if (currentRoom) {
-            const direction = command.args[0];
-            const exit = findExitByDirection(currentRoom, direction);
-
-            if (exit) {
-              player.currentRoom = exit.roomId;
-              socket.write(`You move ${direction}.\r\n`);
-            } else {
-              socket.write(`There's no exit in that direction.\r\n`);
-            }
-          } else {
-            socket.write('An error occurred. The current room does not exist.\r\n');
-          }
-          break;
-        case CommandName.Look:
-          const room = this.rooms.get(player.currentRoom);
-          if (room) {
-            socket.write(colorize(`${room.title}\r\n`, AnsiColor.Cyan));
-            socket.write(colorize(`${room.description}\r\n`, AnsiColor.Green));
-
-            const exitStrings = room.exits.map((exit) => `${exit.direction}`);
-            socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AnsiColor.Yellow));
-          } else {
-            socket.write('An error occurred. The current room does not exist.\r\n');
-          }
-          break;
-        
-        case CommandName.Quit:
-          player.disconnected = true;  
-          socket.write('Goodbye!\r\n');
-          socket.end();
-        case CommandName.Say:
-          const roomMessage = `${player.name} says: ${command.args.join(' ')}\r\n`;
-          socket.write(roomMessage);
-          broadcastToRoom(roomMessage, player, this.players);
-          break;
-        case CommandName.Chat:
-          const globalMessage = `${AnsiColor.Red}[Global] ${player.name}: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
-          broadcastToAll(globalMessage, this.players, player);
-          break;
-        default:
-          socket.write(`You said: ${command}\r\n`);
+  handleCommand(player: Player, socket: any, command: Command) {
+    switch (command.name) {
+      case CommandName.Move:
+        handleMoveCommand(player, command);
+        break;
+      case CommandName.Look:
+        const room = rooms.get(player.currentRoom);
+        if (room) {
+          socket.write(colorize(`${room.title}\r\n`, AnsiColor.Cyan));
+          socket.write(colorize(`${room.description}\r\n`, AnsiColor.Green));
+  
+          const exitStrings = room.exits.map((exit) => `${exit.direction}`);
+          socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AnsiColor.Yellow));
+        } else {
+          socket.write('An error occurred. The current room does not exist.\r\n');
         }
+        break;
+      case CommandName.Quit:
+        player.disconnected = true;  
+        socket.write('Goodbye!\r\n');
+        socket.end();
+      case CommandName.Say:
+        const roomMessage = `${AnsiColor.LightBlue}${player.name} says: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
+        socket.write(roomMessage);
+        broadcastToRoom(roomMessage, player, players);
+        break;
+      case CommandName.Chat:
+        const globalMessage = `${AnsiColor.Red}[Global] ${player.name}: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
+        broadcastToAll(globalMessage, players, player);
+        break;
+      case CommandName.Who:
+        handleWhoCommand(player);
+        break;
+      case CommandName.Inventory:
+        handleInventoryCommand(player);
+        break;
+      case 'help':
+        handleHelpCommand(player);
+        break;
+      default:
+        // socket.write('Unknown command. Type `help` for a list of commands.\r\n');
+        socket.write(`${AnsiColor.Reset}You said: ${input}\r\n`);
+      }
     }
+  });
+  
+
+// TODO: move this to a separate file
+function handleMoveCommand(player: Player, command: Command) {
+    const currentRoom = rooms.get(player.currentRoom);
+    if (!currentRoom) {
+      player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
+      return;
+    }
+  
+    const exit = findExitByDirection(currentRoom, command.args[0]);
+  
+    if (!exit) {
+      player.socket.write(`You cannot go ${command.args[0]} from here.\r\n`);
+      return;
+    }
+  
+    const newRoom = rooms.get(exit.roomId);
+  
+    if (!newRoom) {
+      player.socket.write(`Error: Room ${exit.roomId} not found.\r\n`);
+      return;
+    }
+
+    player.currentRoom = newRoom.id;
+
+    // Send the room description to the player's socket
+    player.socket.write(colorize(`${newRoom.title}\r\n`, AnsiColor.Cyan));
+    player.socket.write(colorize(`${newRoom.description}\r\n`, AnsiColor.Green));
+
+    const exitStrings = newRoom.exits.map((exit) => `${exit.direction}`);
+    player.socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AnsiColor.Yellow));
+  }
+  // TODO: move this to a separate file
+  function handleWhoCommand(player: Player) {
+    const playerNames = Array.from(players.values()).map((p) => p.name).join(',\n');
+    const message = `Players online:\n----------------------------\n${playerNames}\r\n`;
+    player.socket.write(`${AnsiColor.Cyan}${message}${AnsiColor.Reset}`);
+  }
+  // TODO: move this to a separate file
+  function handleInventoryCommand(player: Player) {
+    if (player.inventory.length === 0) {
+      player.socket.write('You are not carrying anything.\r\n');
+    } else {
+      player.socket.write('You are carrying:\r\n');
+      player.inventory.forEach((item) => {
+        // TODO: colorize items and probably do something like item.name
+        player.socket.write(`- ${item}\r\n`);
+      });
+    }
+  }
+  // TODO: move this to a separate file
+  function handleHelpCommand(player: Player) {
+    player.socket.write('Available commands:\r\n');
+    player.socket.write('- move (n/e/s/w)\r\n');
+    player.socket.write('- look\r\n');
+    player.socket.write('- quit\r\n');
+    player.socket.write('- say <message>\r\n');
+    player.socket.write('- chat <message>\r\n');
+    player.socket.write('- who\r\n');
+    player.socket.write('- inventory (inv/i)\r\n');
+    player.socket.write('- help\r\n');
+  }
 }
