@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export interface User {
+  id: number;
   username: string;
   password: string;
 }
@@ -27,6 +28,7 @@ export function addUser(username: string, password: string): void {
 
   const hashedPassword = hashPassword(password);
   const newUser: User = {
+    id: users.length + 1,
     username: username,
     password: hashedPassword,
   };

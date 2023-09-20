@@ -1,7 +1,7 @@
 // login.ts
 
 import { Player } from './player';
-import { findUser, addUser, login } from './user-utils';
+import { findUser, addUser, login } from './user';
 import * as net from 'net';
 
 export function handleLogin(player: Player, socket: net.Socket, input: string) {

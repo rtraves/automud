@@ -5,7 +5,7 @@
       {
         "id": "area1_room1",
         "title": "Newhaven Academy - Room 1",
-        "description": "Welcome to the realms. You can move around using the cardinal directions. Type 'help' for a list of commands.",
+        "description": "Welcome to the realms. You can move around using the cardinal directions.\nType 'help' for a list of commands.",
         "exits": [
           {
             "direction": "east",
