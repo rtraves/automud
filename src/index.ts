@@ -1,8 +1,7 @@
 import * as net from 'net';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Player } from './player';
-import { Room } from './room';
+import { GameManager } from './game-manager'; 
 import { CommandName, parseCommand, Command } from './command-parser';
 import { AnsiColor, colorize } from './ansi-colors';
 import { User } from './user-utils';
@@ -12,28 +11,12 @@ import { handleLogin } from './login';
 
 const PORT = parseInt(process.env.PORT as string, 10) || 3000;
 
-const players: Map<string, Player> = new Map();
-const rooms: Map<string, Room> = new Map();
-
-const usersPath = path.join(__dirname, '..', 'users.json');
-const users: User[] = JSON.parse(fs.readFileSync(usersPath, 'utf-8'));
-
-const areaPath = path.join(__dirname, '..', 'areas', 'area1.json');
-const areaRooms = loadArea(areaPath);
-
-for (const [roomId, room] of areaRooms.entries()) {
-  rooms.set(roomId, room);
-}
-
 const server = net.createServer((socket) => {
   console.log('A user connected');
 
-  // Assign a unique ID to each player
-  const playerId = `${socket.remoteAddress}:${socket.remotePort}`;
-
-  // Create a new player session with an initial room
-  const player = new Player(playerId, 'area1_room1', socket);
-  players.set(playerId, player);
+  const gameManager = GameManager.getInstance();
+  gameManager.start();
+  const player = gameManager.createPlayer(socket);
 
   socket.write('Welcome to the MUD!\r\n');
   socket.write('Enter your username or type `new` to create a new user: ');
@@ -44,127 +27,20 @@ const server = net.createServer((socket) => {
       handleLogin(player, socket, input);
     } else {
       const command: Command = parseCommand(input);
-
-      switch (command.name) {
-        case CommandName.Move:
-        handleMoveCommand(player, command);
-          break;
-        case CommandName.Look:
-          const room = rooms.get(player.currentRoom);
-          if (room) {
-            socket.write(colorize(`${room.title}\r\n`, AnsiColor.Cyan));
-            socket.write(colorize(`${room.description}\r\n`, AnsiColor.Green));
-
-            const exitStrings = room.exits.map((exit) => `${exit.direction}`);
-            socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AnsiColor.Yellow));
-          } else {
-            socket.write('An error occurred. The current room does not exist.\r\n');
-          }
-          break;
-        
-        case CommandName.Quit:
-          player.disconnected = true;  
-          socket.write('Goodbye!\r\n');
-          socket.end();
-        case CommandName.Say:
-          const roomMessage = `${AnsiColor.LightBlue}${player.name} says: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
-          socket.write(roomMessage);
-          broadcastToRoom(roomMessage, player, players);
-          break;
-        case CommandName.Chat:
-          const globalMessage = `${AnsiColor.Red}[Global] ${player.name}: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
-          broadcastToAll(globalMessage, players, player);
-          break;
-        case CommandName.Who:
-          handleWhoCommand(player);
-          break;
-        case CommandName.Inventory:
-          handleInventoryCommand(player);
-          break;
-        case 'help':
-          handleHelpCommand(player);
-          break;
-        default:
-          // socket.write('Unknown command. Type `help` for a list of commands.\r\n');
-          socket.write(`${AnsiColor.Reset}You said: ${input}\r\n`);
-        }
-      }
-    });
+      gameManager.handleCommand(player, socket, command);
+    }
+  });
   
-    socket.on('end', () => {
-      console.log(`A user (${player.name}) disconnected`);
-      // todo socket error: write after end bug
-      // players.delete(playerId);
-    });
-    socket.on('error', (err) => {
-        console.error(`Socket error: ${err.message}`);
-    });
-  }
-);
-  
+  socket.on('end', () => {
+    console.log(`A user (${player.name}) disconnected`);
+    gameManager.players.delete(player.id);
+  });
+
+  socket.on('error', (err) => {
+      console.error(`Socket error: ${err.message}`);
+  });
+});
+
 server.listen(PORT, () => {
   console.log(`Telnet server is running on port ${PORT}`);
 });
-// TODO: move this to a separate file
-function handleMoveCommand(player: Player, command: Command) {
-  const currentRoom = rooms.get(player.currentRoom);
-  if (!currentRoom) {
-    player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
-    return;
-  }
-
-  const exit = findExitByDirection(currentRoom, command.args[0]);
-
-  if (!exit) {
-    player.socket.write(`You cannot go ${command.args[0]} from here.\r\n`);
-    return;
-  }
-
-  const newRoom = rooms.get(exit.roomId);
-
-  if (!newRoom) {
-    player.socket.write(`Error: Room ${exit.roomId} not found.\r\n`);
-    return;
-  }
-
-  player.currentRoom = newRoom.id;
-
-  // Send the room description to the player's socket
-  player.socket.write(colorize(`${newRoom.title}\r\n`, AnsiColor.Cyan));
-  player.socket.write(colorize(`${newRoom.description}\r\n`, AnsiColor.Green));
-
-  const exitStrings = newRoom.exits.map((exit) => `${exit.direction}`);
-  player.socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AnsiColor.Yellow));
-}
-// TODO: move this to a separate file
-function handleWhoCommand(player: Player) {
-  const playerNames = Array.from(players.values()).map((p) => p.name).join(',\n');
-  const message = `Players online:\n----------------------------\n${playerNames}\r\n`;
-  player.socket.write(`${AnsiColor.Cyan}${message}${AnsiColor.Reset}`);
-}
-// TODO: move this to a separate file
-function handleInventoryCommand(player: Player) {
-  if (player.inventory.length === 0) {
-    player.socket.write('You are not carrying anything.\r\n');
-  } else {
-    player.socket.write('You are carrying:\r\n');
-    player.inventory.forEach((item) => {
-      // TODO: colorize items and probably do something like item.name
-      player.socket.write(`- ${item}\r\n`);
-    });
-  }
-}
-// TODO: move this to a separate file
-function handleHelpCommand(player: Player) {
-  player.socket.write('Available commands:\r\n');
-  player.socket.write('- move (n/e/s/w)\r\n');
-  player.socket.write('- look\r\n');
-  player.socket.write('- quit\r\n');
-  player.socket.write('- say <message>\r\n');
-  player.socket.write('- chat <message>\r\n');
-  player.socket.write('- who\r\n');
-  player.socket.write('- inventory (inv/i)\r\n');
-  player.socket.write('- help\r\n');
-}
-
-  

@@ -11,7 +11,7 @@ var CommandName;
     CommandName["Who"] = "who";
     CommandName["Inventory"] = "inventory";
     CommandName["Help"] = "help";
-})(CommandName = exports.CommandName || (exports.CommandName = {}));
+})(CommandName || (exports.CommandName = CommandName = {}));
 function parseCommand(input) {
     const words = input.split(/\s+/);
     const name = words[0].toLowerCase();
