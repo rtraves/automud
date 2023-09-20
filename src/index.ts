@@ -15,6 +15,7 @@ const server = net.createServer((socket) => {
   console.log('A user connected');
 
   const gameManager = GameManager.getInstance();
+  gameManager.start();
   const player = gameManager.createPlayer(socket);
 
   socket.write('Welcome to the MUD!\r\n');
@@ -26,7 +27,6 @@ const server = net.createServer((socket) => {
       handleLogin(player, socket, input);
     } else {
       const command: Command = parseCommand(input);
-
       gameManager.handleCommand(player, socket, command);
     }
   });
@@ -39,4 +39,8 @@ const server = net.createServer((socket) => {
   socket.on('error', (err) => {
       console.error(`Socket error: ${err.message}`);
   });
+});
+
+server.listen(PORT, () => {
+  console.log(`Telnet server is running on port ${PORT}`);
 });

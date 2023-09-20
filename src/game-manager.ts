@@ -1,4 +1,5 @@
 import * as net from 'net';
+import * as path from 'path';
 import { Player } from './player';
 import { Room } from './room';
 import { CommandName, parseCommand, Command } from './command-parser';
@@ -23,8 +24,15 @@ export class GameManager {
     return GameManager.instance;
   }
 
-  start() {}
-  
+  start() {
+    const areaPath = path.join(__dirname, '..', 'areas', 'area1.json');
+    const areaRooms = loadArea(areaPath);
+
+    for (const [roomId, room] of areaRooms.entries()) {
+      this.rooms.set(roomId, room);
+    }
+  }
+
   stop() {}
 
   gameTick() {}
