@@ -60,21 +60,7 @@ const server = net.createServer((socket) => {
             const command = (0, command_parser_1.parseCommand)(input);
             switch (command.name) {
                 case command_parser_1.CommandName.Move:
-                    const currentRoom = rooms.get(player.currentRoom);
-                    if (currentRoom) {
-                        const direction = command.args[0];
-                        const exit = (0, area_utils_1.findExitByDirection)(currentRoom, direction);
-                        if (exit) {
-                            player.currentRoom = exit.roomId;
-                            socket.write(`You move ${direction}.\r\n`);
-                        }
-                        else {
-                            socket.write(`There's no exit in that direction.\r\n`);
-                        }
-                    }
-                    else {
-                        socket.write('An error occurred. The current room does not exist.\r\n');
-                    }
+                    handleMoveCommand(player, command);
                     break;
                 case command_parser_1.CommandName.Look:
                     const room = rooms.get(player.currentRoom);
@@ -93,7 +79,7 @@ const server = net.createServer((socket) => {
                     socket.write('Goodbye!\r\n');
                     socket.end();
                 case command_parser_1.CommandName.Say:
-                    const roomMessage = `${player.name} says: ${command.args.join(' ')}\r\n`;
+                    const roomMessage = `${ansi_colors_1.AnsiColor.LightBlue}${player.name} says: ${command.args.join(' ')}${ansi_colors_1.AnsiColor.Reset}\r\n`;
                     socket.write(roomMessage);
                     (0, broadcast_utils_1.broadcastToRoom)(roomMessage, player, players);
                     break;
@@ -101,14 +87,25 @@ const server = net.createServer((socket) => {
                     const globalMessage = `${ansi_colors_1.AnsiColor.Red}[Global] ${player.name}: ${command.args.join(' ')}${ansi_colors_1.AnsiColor.Reset}\r\n`;
                     (0, broadcast_utils_1.broadcastToAll)(globalMessage, players, player);
                     break;
+                case command_parser_1.CommandName.Who:
+                    handleWhoCommand(player);
+                    break;
+                case command_parser_1.CommandName.Inventory:
+                    handleInventoryCommand(player);
+                    break;
+                case 'help':
+                    handleHelpCommand(player);
+                    break;
                 default:
-                    socket.write(`You said: ${input}\r\n`);
+                    // socket.write('Unknown command. Type `help` for a list of commands.\r\n');
+                    socket.write(`${ansi_colors_1.AnsiColor.Reset}You said: ${input}\r\n`);
             }
         }
     });
     socket.on('end', () => {
         console.log(`A user (${player.name}) disconnected`);
-        players.delete(playerId);
+        // todo socket error: write after end bug
+        // players.delete(playerId);
     });
     socket.on('error', (err) => {
         console.error(`Socket error: ${err.message}`);
@@ -117,3 +114,58 @@ const server = net.createServer((socket) => {
 server.listen(PORT, () => {
     console.log(`Telnet server is running on port ${PORT}`);
 });
+// TODO: move this to a separate file
+function handleMoveCommand(player, command) {
+    const currentRoom = rooms.get(player.currentRoom);
+    if (!currentRoom) {
+        player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
+        return;
+    }
+    const exit = (0, area_utils_1.findExitByDirection)(currentRoom, command.args[0]);
+    if (!exit) {
+        player.socket.write(`You cannot go ${command.args[0]} from here.\r\n`);
+        return;
+    }
+    const newRoom = rooms.get(exit.roomId);
+    if (!newRoom) {
+        player.socket.write(`Error: Room ${exit.roomId} not found.\r\n`);
+        return;
+    }
+    player.currentRoom = newRoom.id;
+    // Send the room description to the player's socket
+    player.socket.write((0, ansi_colors_1.colorize)(`${newRoom.title}\r\n`, ansi_colors_1.AnsiColor.Cyan));
+    player.socket.write((0, ansi_colors_1.colorize)(`${newRoom.description}\r\n`, ansi_colors_1.AnsiColor.Green));
+    const exitStrings = newRoom.exits.map((exit) => `${exit.direction}`);
+    player.socket.write((0, ansi_colors_1.colorize)(`Exits: ${exitStrings.join(', ')}\r\n`, ansi_colors_1.AnsiColor.Yellow));
+}
+// TODO: move this to a separate file
+function handleWhoCommand(player) {
+    const playerNames = Array.from(players.values()).map((p) => p.name).join(',\n');
+    const message = `Players online:\n----------------------------\n${playerNames}\r\n`;
+    player.socket.write(`${ansi_colors_1.AnsiColor.Cyan}${message}${ansi_colors_1.AnsiColor.Reset}`);
+}
+// TODO: move this to a separate file
+function handleInventoryCommand(player) {
+    if (player.inventory.length === 0) {
+        player.socket.write('You are not carrying anything.\r\n');
+    }
+    else {
+        player.socket.write('You are carrying:\r\n');
+        player.inventory.forEach((item) => {
+            // TODO: colorize items and probably do something like item.name
+            player.socket.write(`- ${item}\r\n`);
+        });
+    }
+}
+// TODO: move this to a separate file
+function handleHelpCommand(player) {
+    player.socket.write('Available commands:\r\n');
+    player.socket.write('- move (n/e/s/w)\r\n');
+    player.socket.write('- look\r\n');
+    player.socket.write('- quit\r\n');
+    player.socket.write('- say <message>\r\n');
+    player.socket.write('- chat <message>\r\n');
+    player.socket.write('- who\r\n');
+    player.socket.write('- inventory (inv/i)\r\n');
+    player.socket.write('- help\r\n');
+}

@@ -8,6 +8,9 @@ var CommandName;
     CommandName["Quit"] = "quit";
     CommandName["Say"] = "say";
     CommandName["Chat"] = "chat";
+    CommandName["Who"] = "who";
+    CommandName["Inventory"] = "inventory";
+    CommandName["Help"] = "help";
 })(CommandName = exports.CommandName || (exports.CommandName = {}));
 function parseCommand(input) {
     const words = input.split(/\s+/);
@@ -32,6 +35,14 @@ function parseCommand(input) {
             return { name: CommandName.Say, args };
         case 'chat':
             return { name: CommandName.Chat, args };
+        case 'who':
+            return { name: CommandName.Who, args };
+        case 'inventory':
+        case 'inv':
+        case 'i':
+            return { name: CommandName.Inventory, args };
+        case 'help':
+            return { name: CommandName.Help, args };
         default:
             return { name: '', args: [] };
     }

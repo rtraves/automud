@@ -40,7 +40,3 @@ const server = net.createServer((socket) => {
       console.error(`Socket error: ${err.message}`);
   });
 });
-  
-  server.listen(PORT, () => {
-    console.log(`Telnet server is running on port ${PORT}`);
-  });
