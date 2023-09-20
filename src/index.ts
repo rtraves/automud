@@ -1,12 +1,6 @@
-import * as net from 'net';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as net from 'net';;
 import { GameManager } from './game-manager'; 
-import { CommandName, parseCommand, Command } from './command-parser';
-import { AnsiColor, colorize } from './ansi-colors';
-import { User } from './user-utils';
-import { loadArea, findExitByDirection } from './area-utils';
-import { broadcastToRoom, broadcastToAll } from './broadcast-utils';
+import { parseCommand, Command } from './command-parser';
 import { handleLogin } from './login';
 
 const PORT = parseInt(process.env.PORT as string, 10) || 3000;

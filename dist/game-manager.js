@@ -65,15 +65,7 @@ class GameManager {
                 break;
             case command_parser_1.CommandName.Look:
                 const room = this.rooms.get(player.currentRoom);
-                if (room) {
-                    socket.write((0, ansi_colors_1.colorize)(`${room.title}\r\n`, ansi_colors_1.AnsiColor.Cyan));
-                    socket.write((0, ansi_colors_1.colorize)(`${room.description}\r\n`, ansi_colors_1.AnsiColor.Green));
-                    const exitStrings = room.exits.map((exit) => `${exit.direction}`);
-                    socket.write((0, ansi_colors_1.colorize)(`Exits: ${exitStrings.join(', ')}\r\n`, ansi_colors_1.AnsiColor.Yellow));
-                }
-                else {
-                    socket.write('An error occurred. The current room does not exist.\r\n');
-                }
+                this.handleLookCommand(player, room);
                 break;
             case command_parser_1.CommandName.Quit:
                 player.disconnected = true;
@@ -94,15 +86,20 @@ class GameManager {
             case command_parser_1.CommandName.Inventory:
                 this.handleInventoryCommand(player);
                 break;
-            case 'help':
+            case command_parser_1.CommandName.Help:
                 this.handleHelpCommand(player);
                 break;
+            case command_parser_1.CommandName.Drop:
+                this.handleDropCommand(player, command.args);
+                break;
+            case command_parser_1.CommandName.Get:
+                this.handleGetCommand(player, command.args);
+                break;
             default:
-                // socket.write('Unknown command. Type `help` for a list of commands.\r\n');
-                socket.write(`${ansi_colors_1.AnsiColor.Reset}You said: ${command}\r\n`);
+                socket.write('Unknown command. Type `help` for a list of commands.\r\n');
         }
     }
-    // TODO: move this to a separa  te file
+    // TODO: move this to a separate file
     handleMoveCommand(player, command) {
         const currentRoom = this.rooms.get(player.currentRoom);
         if (!currentRoom) {
@@ -120,11 +117,9 @@ class GameManager {
             return;
         }
         player.currentRoom = newRoom.id;
-        // Send the room description to the player's socket
-        player.socket.write((0, ansi_colors_1.colorize)(`${newRoom.title}\r\n`, ansi_colors_1.AnsiColor.Cyan));
-        player.socket.write((0, ansi_colors_1.colorize)(`${newRoom.description}\r\n`, ansi_colors_1.AnsiColor.Green));
-        const exitStrings = newRoom.exits.map((exit) => `${exit.direction}`);
-        player.socket.write((0, ansi_colors_1.colorize)(`Exits: ${exitStrings.join(', ')}\r\n`, ansi_colors_1.AnsiColor.Yellow));
+        // Modify handleLookCommand to accept a room ID so we can reuse it here
+        // Also I hate the 'handle' prefix
+        this.handleLookCommand(player, newRoom);
     }
     // TODO: move this to a separate file
     handleWhoCommand(player) {
@@ -139,10 +134,11 @@ class GameManager {
         }
         else {
             player.socket.write('You are carrying:\r\n');
-            player.inventory.forEach((item) => {
+            for (const item of player.inventory.items) {
                 // TODO: colorize items and probably do something like item.name
-                player.socket.write(`- ${item}\r\n`);
-            });
+                player.socket.write(`- ${item.name}\r\n`);
+            }
+            ;
         }
     }
     // TODO: move this to a separate file
@@ -156,7 +152,74 @@ class GameManager {
         player.socket.write('- who\r\n');
         player.socket.write('- inventory (inv/i)\r\n');
         player.socket.write('- help\r\n');
+        player.socket.write('- drop <item>\r\n');
+        player.socket.write('- get <item>\r\n');
+    }
+    // TODO: move this to a separate file
+    handleLookCommand(player, room) {
+        if (room) {
+            player.socket.write((0, ansi_colors_1.colorize)(`${room.title}\r\n`, ansi_colors_1.AnsiColor.Cyan));
+            player.socket.write((0, ansi_colors_1.colorize)(`${room.description}\r\n`, ansi_colors_1.AnsiColor.Green));
+            if (room.items && room.items.length > 0) {
+                for (const item of room.items) {
+                    player.socket.write((0, ansi_colors_1.colorize)(`${item.description}\r\n`, ansi_colors_1.AnsiColor.Magenta));
+                }
+            }
+            const exitStrings = room.exits.map((exit) => `${exit.direction}`);
+            player.socket.write((0, ansi_colors_1.colorize)(`Exits: ${exitStrings.join(', ')}\r\n`, ansi_colors_1.AnsiColor.Yellow));
+        }
+        else {
+            player.socket.write('An error occurred. The current room does not exist.\r\n');
+        }
+    }
+    // TODO: move this to a separate file
+    handleDropCommand(player, args) {
+        if (args.length === 0) {
+            player.socket.write('Drop what?\r\n');
+            return;
+        }
+        const itemName = args.join(' ');
+        const item = player.inventory.findItem(itemName);
+        if (!item) {
+            player.socket.write(`You do not have ${itemName}.\r\n`);
+            return;
+        }
+        const currentRoom = this.rooms.get(player.currentRoom);
+        if (!currentRoom) {
+            player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
+            return;
+        }
+        player.inventory.removeItem(item);
+        currentRoom.addItem(item);
+        player.socket.write(`You drop ${item.name}.\r\n`);
+        (0, broadcast_utils_1.broadcastToRoom)(`${player.name} drops ${item.name}.\r\n`, player, this.players);
+    }
+    // TODO: move this to a separate file
+    handleGetCommand(player, args) {
+        if (args.length === 0) {
+            player.socket.write('Get what?\r\n');
+            return;
+        }
+        const itemName = args.join(' ');
+        const currentRoom = this.rooms.get(player.currentRoom);
+        if (!currentRoom) {
+            player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
+            return;
+        }
+        const item = currentRoom.items.find((item) => item.name.toLowerCase() === itemName.toLowerCase());
+        if (!item) {
+            player.socket.write(`There is no ${itemName} here.\r\n`);
+            return;
+        }
+        currentRoom.removeItem(item);
+        player.inventory.addItem(item);
+        player.socket.write(`You get ${item.description.toLowerCase}.\r\n`);
+        (0, broadcast_utils_1.broadcastToRoom)(`${player.name} gets ${item.description.toLowerCase}.\r\n`, player, this.players);
     }
 }
 exports.GameManager = GameManager;
 ;
+//TODO LIST
+// Fix colorize, it's annoying to use for colors, should allow colors to change midline
+// Think about game state, how to save it, how to load it, how to reset it
+// Refactor commands to be more modular

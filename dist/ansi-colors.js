@@ -14,7 +14,7 @@ var AnsiColor;
     AnsiColor["White"] = "\u001B[37m";
     AnsiColor["Purple"] = "\u001B[35m";
     AnsiColor["LightBlue"] = "\u001B[94m";
-})(AnsiColor || (exports.AnsiColor = AnsiColor = {}));
+})(AnsiColor = exports.AnsiColor || (exports.AnsiColor = {}));
 function colorize(text, color) {
     return color + text + AnsiColor.Reset;
 }

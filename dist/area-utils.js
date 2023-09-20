@@ -31,7 +31,7 @@ function loadArea(areaPath) {
     const areaData = JSON.parse(areaJson);
     const areaRooms = new Map();
     for (const roomData of areaData.rooms) {
-        const room = new room_1.Room(roomData.id, roomData.title, roomData.description, roomData.exits);
+        const room = new room_1.Room(roomData.id, roomData.title, roomData.description, roomData.exits, roomData.items);
         areaRooms.set(room.id, room);
     }
     return areaRooms;

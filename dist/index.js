@@ -24,6 +24,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const net = __importStar(require("net"));
+;
 const game_manager_1 = require("./game-manager");
 const command_parser_1 = require("./command-parser");
 const login_1 = require("./login");

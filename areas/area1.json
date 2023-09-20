@@ -11,6 +11,13 @@
             "direction": "east",
             "roomId": "area1_room2"
           }
+        ],
+        "items": [
+          {
+            "id": 1,
+            "name": "Key",
+            "description": "A small key."
+          }
         ]
       },
       {

@@ -8,7 +8,7 @@ export function loadArea(areaPath: string): Map<string, Room> {
   const areaRooms: Map<string, Room> = new Map();
 
   for (const roomData of areaData.rooms) {
-    const room = new Room(roomData.id, roomData.title, roomData.description, roomData.exits as Exit[]);
+    const room = new Room(roomData.id, roomData.title, roomData.description, roomData.exits as Exit[], roomData.items);
     areaRooms.set(room.id, room);
   }
 

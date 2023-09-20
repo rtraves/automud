@@ -10,6 +10,11 @@ export enum AnsiColor {
     White = '\x1b[37m',
     Purple = '\x1b[35m',
     LightBlue = '\x1b[94m',
+    LightGreen = '\x1b[92m',
+    LightCyan = '\x1b[96m',
+    LightRed = '\x1b[91m',
+    LightMagenta = '\x1b[95m',
+    LightYellow = '\x1b[93m',
   }
   
   export function colorize(text: string, color: AnsiColor): string {
