@@ -12,4 +12,13 @@ export class Item {
       this.value = value;
       this.id = id;
     }
+
+    serialize(): any {
+      return {
+        id: this.id,
+        name: this.name,
+        description: this.description,
+        value: this.value
+      };
+    }
   }

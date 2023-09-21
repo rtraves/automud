@@ -50,4 +50,18 @@ export class Player {
     this.isLoggedIn = false;
     this.newPlayer = false;
   }
+
+  serialize(): any {
+    return {
+      id: this.id,
+      name: this.name,
+      currentRoom: this.currentRoom,
+      inventory: this.inventory.items.map((item) => item.serialize()),
+      disconnected: this.disconnected,
+      expectingName: this.expectingName,
+      expectingPassword: this.expectingPassword,
+      isLoggedIn: this.isLoggedIn,
+      newPlayer: this.newPlayer
+    };
+  }
 }

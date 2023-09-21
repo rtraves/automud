@@ -1,4 +1,5 @@
 import * as net from 'net';
+import * as fs from 'fs';
 import * as path from 'path';
 import { Player } from './player';
 import { Room } from './room';
@@ -31,11 +32,37 @@ export class GameManager {
     for (const [roomId, room] of areaRooms.entries()) {
       this.rooms.set(roomId, room);
     }
+
+    // set game tick
+    setInterval(() => {
+      this.gameTick();
+    }, 1000);
+
+    // set save tick
+    setInterval(() => {
+      this.saveTick();
+    }, 300000);
+    
   }
 
   stop() {}
 
-  gameTick() {}
+  gameTick() {
+    // check for disconnected players
+    for (const [playerId, player] of this.players.entries()) {
+      if (player.disconnected) {
+        this.players.delete(playerId);
+      }
+    }
+  }
+
+  saveTick() {
+    // save player data
+    const playerData = Array.from(this.players.values()).map((p) => p.serialize());
+    const playerDataPath = 'player-data.json';
+    fs.writeFileSync(playerDataPath, JSON.stringify(playerData));
+
+  }
 
   createPlayer(socket: any) {
     // Assign a unique ID to each player
