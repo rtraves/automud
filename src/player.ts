@@ -1,5 +1,13 @@
 import * as net from 'net';
+import * as fs from 'fs';
 import { Item } from './item';
+
+export interface PlayerData {
+  id: string;
+  name: string;
+  currentRoom: string;
+  inventory: PlayerInventory;
+}
 
 export interface PlayerInventory {
   items: Item[];
@@ -49,19 +57,26 @@ export class Player {
     this.expectingPassword = false;
     this.isLoggedIn = false;
     this.newPlayer = false;
+    this.save = this.save.bind(this);
   }
 
-  serialize(): any {
-    return {
+  save(): void {
+    const playerData: PlayerData = {
       id: this.id,
       name: this.name,
       currentRoom: this.currentRoom,
-      inventory: this.inventory.items.map((item) => item.serialize()),
-      disconnected: this.disconnected,
-      expectingName: this.expectingName,
-      expectingPassword: this.expectingPassword,
-      isLoggedIn: this.isLoggedIn,
-      newPlayer: this.newPlayer
+      inventory: this.inventory,
     };
+    console.log(`Saving player ${this.name}...`);
+    fs.writeFileSync(`./data/players/${this.name}.json`, JSON.stringify(playerData), 'utf-8');
+  }
+
+  load(): void {
+    console.log(`Loading player ${this.name}...`);
+    const playerData = JSON.parse(fs.readFileSync(`./data/players/${this.name}.json`, 'utf-8'));
+    this.id = playerData.id;
+    this.name = playerData.name;
+    this.currentRoom = playerData.currentRoom;
+    this.inventory = playerData.inventory;
   }
 }

@@ -1,6 +1,7 @@
 import * as net from 'net';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as user from './user';
 import { Player } from './player';
 import { Room } from './room';
 import { CommandName, parseCommand, Command } from './command-parser';
@@ -41,29 +42,24 @@ export class GameManager {
     // set save tick
     setInterval(() => {
       this.saveTick();
-    }, 300000);
-    
+    }, 60000);
   }
 
   stop() {}
 
   gameTick() {
-    // check for disconnected players
-    for (const [playerId, player] of this.players.entries()) {
-      if (player.disconnected) {
-        this.players.delete(playerId);
-      }
-    }
+
   }
 
   saveTick() {
     // save player data
-    const playerData = Array.from(this.players.values()).map((p) => p.serialize());
-    const playerDataPath = 'player-data.json';
-    fs.writeFileSync(playerDataPath, JSON.stringify(playerData));
-
+    console.log('Saving player data...');
+    this.players.forEach((player) => {
+      player.save();
+    });
   }
 
+  // called after login if new player
   createPlayer(socket: any) {
     // Assign a unique ID to each player
     const playerId = `${socket.remoteAddress}:${socket.remotePort}`;
