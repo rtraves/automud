@@ -49,7 +49,7 @@ export function handleLogin(player: Player, socket: net.Socket, input: string) {
           player.isLoggedIn = true;
         }
         else {
-          var attemptLogin = login(player.name, inputPassword);
+          var attemptLogin = player.attemptLogin(player.name, inputPassword);
 
           if (attemptLogin) {
             socket.write(`Welcome back, ${player.name}!\r\n`);

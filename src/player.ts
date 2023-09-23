@@ -1,5 +1,6 @@
 import * as net from 'net';
 import * as fs from 'fs';
+import * as crypto from 'crypto';
 import { Item } from './item';
 
 export interface PlayerData {
@@ -61,22 +62,45 @@ export class Player {
   }
 
   save(): void {
-    const playerData: PlayerData = {
-      id: this.id,
-      name: this.name,
-      currentRoom: this.currentRoom,
-      inventory: this.inventory,
-    };
-    console.log(`Saving player ${this.name}...`);
-    fs.writeFileSync(`./data/players/${this.name}.json`, JSON.stringify(playerData), 'utf-8');
+    // was a bug where i was attempting to login and saves were firing
+    if (this.isLoggedIn) {
+      const playerData: PlayerData = {
+        id: this.id,
+        name: this.name,
+        currentRoom: this.currentRoom,
+        inventory: this.inventory,
+      };
+      console.log(`Saving player ${this.name}...`);
+      fs.writeFileSync(`./data/players/${this.name}.json`, JSON.stringify(playerData), 'utf-8');
+    }
   }
 
-  load(): void {
-    console.log(`Loading player ${this.name}...`);
-    const playerData = JSON.parse(fs.readFileSync(`./data/players/${this.name}.json`, 'utf-8'));
-    this.id = playerData.id;
-    this.name = playerData.name;
-    this.currentRoom = playerData.currentRoom;
-    this.inventory = playerData.inventory;
+  // TODO: add password to player data rethink login logic to avoid further issues
+  // might be worth using state for it instead of booleans attached to player
+  // this would also make it so we prob no longer need an instance of a temp playerprior to login
+  attemptLogin(name: string, password: string): boolean {
+    try{
+      const playerData = JSON.parse(fs.readFileSync(`./data/players/${name}.json`, 'utf-8'));
+
+      if (this.hashPassword(playerData.password) !== password) {
+        return false;
+      }
+      else {
+        this.id = playerData.id;
+        this.name = playerData.name;
+        this.currentRoom = playerData.currentRoom;
+        this.inventory = playerData.inventory;
+  
+        return true;
+      }
+    } catch (err) {
+      return false;
+    }
+  }
+
+  hashPassword(password: string): string {
+    const hash = crypto.createHash('sha256');
+    hash.update(password);
+    return hash.digest('hex');
   }
 }
