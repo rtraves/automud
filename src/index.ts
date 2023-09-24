@@ -1,37 +1,47 @@
-import * as net from 'net';;
-import { GameManager } from './game-manager'; 
+import * as net from 'net';
+import { GameManager } from './game-manager';
 import { parseCommand, Command } from './command-parser';
 import { handleLogin } from './login';
+import { Session } from './session';
+import { Player } from './player';
 
 const PORT = parseInt(process.env.PORT as string, 10) || 3000;
+const gameManager = GameManager.getInstance();
+gameManager.start();
 
 const server = net.createServer((socket) => {
   console.log('A user connected');
 
-  const gameManager = GameManager.getInstance();
-  gameManager.start();
-  const player = gameManager.createPlayer(socket);
+  let sessionOrPlayer: Session | Player = gameManager.initSession(socket);
 
   socket.write('Welcome to the MUD!\r\n');
   socket.write('Enter your username or type `new` to create a new user: ');
 
   socket.on('data', (data) => {
     const input = data.toString().trim();
-    if (!player.isLoggedIn) {
-      handleLogin(player, socket, input);
-    } else {
+
+    if (sessionOrPlayer instanceof Session) {
+      sessionOrPlayer = handleLogin(sessionOrPlayer, socket, input);
+      if (sessionOrPlayer instanceof Player) {
+        gameManager.players.set(sessionOrPlayer.id, sessionOrPlayer);
+    }
+    } else if (sessionOrPlayer instanceof Player) {
       const command: Command = parseCommand(input);
-      gameManager.handleCommand(player, command);
+      gameManager.handleCommand(sessionOrPlayer, command);
     }
   });
-  
+
   socket.on('end', () => {
-    console.log(`A user (${player.name}) disconnected`);
-    gameManager.players.delete(player.id);
+    if (sessionOrPlayer instanceof Player) {
+      console.log(`A user (${sessionOrPlayer.name}) disconnected`);
+      gameManager.players.delete(sessionOrPlayer.id);
+    } else {
+      console.log('A user disconnected before logging in.');
+    }
   });
 
   socket.on('error', (err) => {
-      console.error(`Socket error: ${err.message}`);
+    console.error(`Socket error: ${err.message}`);
   });
 });
 

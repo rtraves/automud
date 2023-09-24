@@ -1,13 +1,17 @@
 import * as net from 'net';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
+import * as path from 'path';
 import { Item } from './item';
+
+const playersDataPath = path.join(__dirname, '..', 'data', 'players');
 
 export interface PlayerData {
   id: string;
   name: string;
   currentRoom: string;
   inventory: PlayerInventory;
+  password?: string;
 }
 
 export interface PlayerInventory {
@@ -25,10 +29,7 @@ export class Player {
   inventory: PlayerInventory;
   disconnected: boolean;
   socket: net.Socket;
-  expectingName: boolean;
-  expectingPassword: boolean;
-  isLoggedIn: boolean;
-  newPlayer: boolean;
+  password?: string;
 
   constructor(id: string, currentRoom: string, socket: net.Socket) {
     this.id = id;
@@ -54,24 +55,43 @@ export class Player {
     };
     this.disconnected = false;
     this.socket = socket;
-    this.expectingName = true;
-    this.expectingPassword = false;
-    this.isLoggedIn = false;
-    this.newPlayer = false;
     this.save = this.save.bind(this);
+    
+  }
+
+  static playerExists(name: string): boolean {
+    return fs.existsSync(path.join(playersDataPath, `${name}.json`));
+  }
+
+  static createNewPlayer(name: string, password: string, socket: net.Socket): Player {
+    const player = new Player(name, 'area1_room1', socket); // Assuming default room for new players
+    player.name = name;
+    player.password = player.hashPassword(password);
+    player.save();
+    return player;
   }
 
   save(): void {
-    // was a bug where i was attempting to login and saves were firing
-    if (this.isLoggedIn) {
-      const playerData: PlayerData = {
-        id: this.id,
-        name: this.name,
-        currentRoom: this.currentRoom,
-        inventory: this.inventory,
-      };
-      console.log(`Saving player ${this.name}...`);
-      fs.writeFileSync(`./data/players/${this.name}.json`, JSON.stringify(playerData), 'utf-8');
+    const playerData: PlayerData = {
+      id: this.id,
+      name: this.name,
+      currentRoom: this.currentRoom,
+      inventory: this.inventory,
+      password: this.password,
+    };
+    console.log(`Saving player ${this.name}...`);
+    fs.writeFileSync(`./data/players/${this.name}.json`, JSON.stringify(playerData), 'utf-8');
+  }
+  load(): void {
+    try {
+      const data = fs.readFileSync(`./data/players/${this.name}.json`, 'utf8');
+      const playerData: PlayerData = JSON.parse(data);
+      this.name = playerData.name;
+      this.password = playerData.password;
+      this.currentRoom = playerData.currentRoom;
+      this.inventory = playerData.inventory;
+    } catch (err) {
+      console.error(`Failed to load player data for ${this.name}. Error: ${err}`);
     }
   }
 
@@ -82,14 +102,15 @@ export class Player {
     try{
       const playerData = JSON.parse(fs.readFileSync(`./data/players/${name}.json`, 'utf-8'));
 
-      if (this.hashPassword(playerData.password) !== password) {
+      if (playerData.password !== this.hashPassword(password)) {
         return false;
-      }
+    }
       else {
         this.id = playerData.id;
         this.name = playerData.name;
         this.currentRoom = playerData.currentRoom;
         this.inventory = playerData.inventory;
+        this.password = playerData.password;
   
         return true;
       }

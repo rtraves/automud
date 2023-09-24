@@ -1,22 +1,23 @@
 import * as net from 'net';
-import * as fs from 'fs';
 import * as path from 'path';
-import * as user from './user';
 import { Player } from './player';
 import { Room } from './room';
 import { CommandName, parseCommand, Command } from './command-parser';
 import { AnsiColor, colorize } from './ansi-colors';
 import { loadArea, findExitByDirection } from './area-utils';
 import { broadcastToRoom, broadcastToAll } from './broadcast-utils';
+import { Session } from './session';
 
 export class GameManager {
   private static instance: GameManager;
   players: Map<string, Player>;
   rooms: Map<string, Room>;
+  sessions: Map<string, Session>;
 
   private constructor() {
     this.players = new Map();
     this.rooms = new Map();
+    this.sessions = new Map();
   }
 
   static getInstance(): GameManager {
@@ -59,16 +60,16 @@ export class GameManager {
     });
   }
 
-  // called after login if new player
-  createPlayer(socket: any) {
-    // Assign a unique ID to each player
-    const sessionId = `${socket.remoteAddress}:${socket.remotePort}`;
-
-    // Create a new player session with an initial room
-    const player = new Player(sessionId, 'area1_room1', socket);
-    this.players.set(sessionId, player);
-
+  convertSessionToPlayer(session: Session, providedName: string, password: string): Player {
+    const player = Player.createNewPlayer(providedName, password, session.socket);
+    this.players.set(session.sessionId, player);
+    this.sessions.delete(session.sessionId);
     return player;
+  }
+
+  initSession(socket: net.Socket): Session {
+    const session = new Session(socket);
+    return session;
   }
 
   handleCommand(player: Player, command: Command) {
@@ -81,9 +82,10 @@ export class GameManager {
         this.handleLookCommand(player,room);
         break;
       case CommandName.Quit:
-        player.disconnected = true;  
+        player.save();
         player.socket.write('Goodbye!\r\n');
         player.socket.end();
+        break;
       case CommandName.Say:
         const roomMessage = `${AnsiColor.LightBlue}${player.name} says: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
         player.socket.write(roomMessage);
@@ -142,7 +144,7 @@ export class GameManager {
   }
   // TODO: move this to a separate file
   handleWhoCommand(player: Player) {
-    const playerNames = Array.from(this.players.values()).map((p) => p.name).join(',\n');
+    const playerNames = Array.from(this.players.values()).map((p) => p.name).join('\n');
     const message = `Players online:\n----------------------------\n${playerNames}\r\n`;
     player.socket.write(`${AnsiColor.Cyan}${message}${AnsiColor.Reset}`);
   }
