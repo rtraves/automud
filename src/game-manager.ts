@@ -62,16 +62,16 @@ export class GameManager {
   // called after login if new player
   createPlayer(socket: any) {
     // Assign a unique ID to each player
-    const playerId = `${socket.remoteAddress}:${socket.remotePort}`;
+    const sessionId = `${socket.remoteAddress}:${socket.remotePort}`;
 
     // Create a new player session with an initial room
-    const player = new Player(playerId, 'area1_room1', socket);
-    this.players.set(playerId, player);
+    const player = new Player(sessionId, 'area1_room1', socket);
+    this.players.set(sessionId, player);
 
     return player;
   }
 
-  handleCommand(player: Player, socket: any, command: Command) {
+  handleCommand(player: Player, command: Command) {
     switch (command.name) {
       case CommandName.Move:
         this.handleMoveCommand(player, command);
@@ -82,11 +82,11 @@ export class GameManager {
         break;
       case CommandName.Quit:
         player.disconnected = true;  
-        socket.write('Goodbye!\r\n');
-        socket.end();
+        player.socket.write('Goodbye!\r\n');
+        player.socket.end();
       case CommandName.Say:
         const roomMessage = `${AnsiColor.LightBlue}${player.name} says: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
-        socket.write(roomMessage);
+        player.socket.write(roomMessage);
         broadcastToRoom(roomMessage, player, this.players);
         break;
       case CommandName.Chat:
@@ -109,7 +109,7 @@ export class GameManager {
         this.handleGetCommand(player, command.args);
         break;
       default:
-        socket.write('Unknown command. Type `help` for a list of commands.\r\n');
+        player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
     }
   }
   // TODO: move this to a separate file
@@ -239,12 +239,12 @@ export class GameManager {
 
     currentRoom.removeItem(item);
     player.inventory.addItem(item);
-    player.socket.write(`You get ${item.description.toLowerCase}.\r\n`);
-    broadcastToRoom(`${player.name} gets ${item.description.toLowerCase}.\r\n`, player, this.players);
+    player.socket.write(`You get ${item.description}.\r\n`);
+    broadcastToRoom(`${player.name} gets ${item.description}.\r\n`, player, this.players);
   }
 };
 
 //TODO LIST
-// Fix colorize, it's annoying to use for colors, should allow colors to change midstring
+// Allow color switching mid-string
 // Think about game state, how to save it, how to load it, how to reset it
 // Refactor commands to be more modular

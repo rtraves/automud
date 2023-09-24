@@ -1,4 +1,5 @@
 users.json
+data/players/
 node_modules/
 dist/
 ```

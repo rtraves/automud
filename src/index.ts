@@ -21,7 +21,7 @@ const server = net.createServer((socket) => {
       handleLogin(player, socket, input);
     } else {
       const command: Command = parseCommand(input);
-      gameManager.handleCommand(player, socket, command);
+      gameManager.handleCommand(player, command);
     }
   });
   
