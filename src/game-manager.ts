@@ -2,19 +2,22 @@ import * as net from 'net';
 import * as path from 'path';
 import { Player } from './player';
 import { Room } from './room';
-import { CommandName, parseCommand, Command } from './command-parser';
+import { CommandName, Command } from './command-parser';
 import { AnsiColor, colorize } from './ansi-colors';
 import { loadArea, findExitByDirection } from './area-utils';
 import { broadcastToRoom, broadcastToAll } from './broadcast-utils';
+import { Session } from './session';
 
 export class GameManager {
   private static instance: GameManager;
   players: Map<string, Player>;
   rooms: Map<string, Room>;
+  sessions: Map<string, Session>;
 
   private constructor() {
     this.players = new Map();
     this.rooms = new Map();
+    this.sessions = new Map();
   }
 
   static getInstance(): GameManager {
@@ -31,24 +34,45 @@ export class GameManager {
     for (const [roomId, room] of areaRooms.entries()) {
       this.rooms.set(roomId, room);
     }
+
+    // set game tick
+    setInterval(() => {
+      this.gameTick();
+    }, 1000);
+
+    // set save tick
+    setInterval(() => {
+      this.saveTick();
+    }, 60000);
   }
 
   stop() {}
 
-  gameTick() {}
+  gameTick() {
 
-  createPlayer(socket: any) {
-    // Assign a unique ID to each player
-    const playerId = `${socket.remoteAddress}:${socket.remotePort}`;
+  }
 
-    // Create a new player session with an initial room
-    const player = new Player(playerId, 'area1_room1', socket);
-    this.players.set(playerId, player);
+  saveTick() {
+    // save player data
+    console.log('Saving player data...');
+    this.players.forEach((player) => {
+      player.save();
+    });
+  }
 
+  convertSessionToPlayer(session: Session, providedName: string, password: string): Player {
+    const player = Player.createNewPlayer(providedName, password, session.socket);
+    this.players.set(session.sessionId, player);
+    this.sessions.delete(session.sessionId);
     return player;
   }
 
-  handleCommand(player: Player, socket: any, command: Command) {
+  initSession(socket: net.Socket): Session {
+    const session = new Session(socket);
+    return session;
+  }
+
+  handleCommand(player: Player, command: Command) {
     switch (command.name) {
       case CommandName.Move:
         this.handleMoveCommand(player, command);
@@ -58,12 +82,13 @@ export class GameManager {
         this.handleLookCommand(player,room);
         break;
       case CommandName.Quit:
-        player.disconnected = true;  
-        socket.write('Goodbye!\r\n');
-        socket.end();
+        player.save();
+        player.socket.write('Goodbye!\r\n');
+        player.socket.end();
+        break;
       case CommandName.Say:
         const roomMessage = `${AnsiColor.LightBlue}${player.name} says: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
-        socket.write(roomMessage);
+        player.socket.write(roomMessage);
         broadcastToRoom(roomMessage, player, this.players);
         break;
       case CommandName.Chat:
@@ -86,7 +111,7 @@ export class GameManager {
         this.handleGetCommand(player, command.args);
         break;
       default:
-        socket.write('Unknown command. Type `help` for a list of commands.\r\n');
+        player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
     }
   }
   // TODO: move this to a separate file
@@ -110,8 +135,9 @@ export class GameManager {
       player.socket.write(`Error: Room ${exit.roomId} not found.\r\n`);
       return;
     }
-
+    broadcastToRoom(`${player.name} leaves ${command.args[0]}.\r\n`, player, this.players);
     player.currentRoom = newRoom.id;
+    broadcastToRoom(`${player.name} has arrived.\r\n`, player, this.players);
 
     // Modify handleLookCommand to accept a room ID so we can reuse it here
     // Also I kinda hate the 'handle' prefix
@@ -119,7 +145,7 @@ export class GameManager {
   }
   // TODO: move this to a separate file
   handleWhoCommand(player: Player) {
-    const playerNames = Array.from(this.players.values()).map((p) => p.name).join(',\n');
+    const playerNames = Array.from(this.players.values()).map((p) => p.name).join('\n');
     const message = `Players online:\n----------------------------\n${playerNames}\r\n`;
     player.socket.write(`${AnsiColor.Cyan}${message}${AnsiColor.Reset}`);
   }
@@ -216,12 +242,12 @@ export class GameManager {
 
     currentRoom.removeItem(item);
     player.inventory.addItem(item);
-    player.socket.write(`You get ${item.description.toLowerCase}.\r\n`);
-    broadcastToRoom(`${player.name} gets ${item.description.toLowerCase}.\r\n`, player, this.players);
+    player.socket.write(`You get ${item.description}.\r\n`);
+    broadcastToRoom(`${player.name} gets ${item.description}.\r\n`, player, this.players);
   }
 };
 
 //TODO LIST
-// Fix colorize, it's annoying to use for colors, should allow colors to change midstring
+// Allow color switching mid-string
 // Think about game state, how to save it, how to load it, how to reset it
 // Refactor commands to be more modular

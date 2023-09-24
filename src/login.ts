@@ -1,71 +1,61 @@
 // login.ts
 
 import { Player } from './player';
-import { findUser, addUser, login } from './user';
 import * as net from 'net';
+import { GameManager } from './game-manager';
+import { Session } from './session';
 
-export function handleLogin(player: Player, socket: net.Socket, input: string) {
+export function handleLogin(session: Session, socket: net.Socket, input: string): Session | Player {
+  const gameManager = GameManager.getInstance();
+
   switch (true) {
     case input === 'new':
       socket.write('Enter your new username: ');
-      player.newPlayer = true;
-      player.expectingName = true;
+      session.newPlayer = true;
+      session.expectingName = true;
       break;
-    case player.expectingName:
-      const user = findUser(input);
-      if (player.newPlayer) {
-        if (user) {
+    case session.expectingName:
+      if (session.newPlayer) {
+        if (Player.playerExists(input)) {
           socket.write('Username already exists. Enter your new username: ');
-        }
-        else {
+        } else {
           socket.write('Create your password: ');
-          player.name = input;
-          player.expectingName = false;
-          player.expectingPassword = true;
+          session.providedName = input;
+          session.expectingName = false;
+          session.expectingPassword = true;
         }
-      }
-      else {
-        if (user) {
-          player.name = input;
+      } else {
+        if (Player.playerExists(input)) {
+          session.providedName = input;
           socket.write('Enter your password: ');
-          player.expectingName = false;
-          player.expectingPassword = true;
-        } 
-        else {
+          session.expectingName = false;
+          session.expectingPassword = true;
+        } else {
           socket.write('Invalid username. Enter your player username: ');
         }
       }
       break;
-    case player.expectingPassword:
-      // If expectingPassword is true, it means the user provided a password.
-      // We will use the addUser function to create a new user in this section.
+    case session.expectingPassword:
       const inputPassword = input;
-      try {
-        if (player.newPlayer) {
-          addUser(player.name, inputPassword);
-          socket.write(`Hello, ${player.name}! Your account has been created.\r\n`);
-          player.newPlayer = false;
-          player.expectingPassword = false;
-          player.isLoggedIn = true;
+      if (session.newPlayer) {
+        const player = gameManager.convertSessionToPlayer(session, session.providedName!, inputPassword);
+        socket.write(`Hello, ${player.name}! Your account has been created.\r\n`);
+        return player; // Return the new Player instance
+      } else {
+        const tempPlayer = new Player(session.sessionId, 'area1_room1', socket);
+        tempPlayer.name = session.providedName!;
+        if (tempPlayer.attemptLogin(tempPlayer.name, inputPassword)) {
+          tempPlayer.load();
+          socket.write(`Welcome back, ${tempPlayer.name}!\r\n`);
+          return tempPlayer; // Return the logged-in Player instance
+        } else {
+          socket.write(`Invalid username or password. Please try again.\r\n`);
+          socket.write('Please enter your username: ');
+          session.expectingName = true;
+          session.expectingPassword = false;
         }
-        else {
-          var attemptLogin = login(player.name, inputPassword);
-
-          if (attemptLogin) {
-            socket.write(`Welcome back, ${player.name}!\r\n`);
-            player.expectingPassword = false;
-            player.isLoggedIn = true;
-          }
-          else {
-            socket.write(`Invalid username or password. Please try again.\r\n`);
-            socket.write('Please enter your username: ');
-            player.expectingName = true;
-            player.expectingPassword = false;
-          }
-        }
-      } catch (error: any) {
-        socket.write(`${error.message}\r\n`);
       }
       break;
   }
+  return session; // Return the session if no conversion happened
 }
