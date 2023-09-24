@@ -95,9 +95,6 @@ export class Player {
     }
   }
 
-  // TODO: add password to player data rethink login logic to avoid further issues
-  // might be worth using state for it instead of booleans attached to player
-  // this would also make it so we prob no longer need an instance of a temp playerprior to login
   attemptLogin(name: string, password: string): boolean {
     try{
       const playerData = JSON.parse(fs.readFileSync(`./data/players/${name}.json`, 'utf-8'));

@@ -2,7 +2,7 @@ import * as net from 'net';
 import * as path from 'path';
 import { Player } from './player';
 import { Room } from './room';
-import { CommandName, parseCommand, Command } from './command-parser';
+import { CommandName, Command } from './command-parser';
 import { AnsiColor, colorize } from './ansi-colors';
 import { loadArea, findExitByDirection } from './area-utils';
 import { broadcastToRoom, broadcastToAll } from './broadcast-utils';
@@ -135,8 +135,9 @@ export class GameManager {
       player.socket.write(`Error: Room ${exit.roomId} not found.\r\n`);
       return;
     }
-
+    broadcastToRoom(`${player.name} leaves ${command.args[0]}.\r\n`, player, this.players);
     player.currentRoom = newRoom.id;
+    broadcastToRoom(`${player.name} has arrived.\r\n`, player, this.players);
 
     // Modify handleLookCommand to accept a room ID so we can reuse it here
     // Also I kinda hate the 'handle' prefix
