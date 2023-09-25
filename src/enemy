@@ -1,0 +1,27 @@
+export class Enemy {
+    id: string;
+    name: string;
+    description: string;
+    health: number;
+    damage: number;
+
+    constructor(id: string, name: string, description: string, health: number, damage: number) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.health = health;
+        this.damage = damage;
+    }
+
+    attack(): number {
+        return this.damage;
+    }
+
+    takeDamage(damage: number): void {
+        this.health -= damage;
+    }
+
+    isDead(): boolean {
+        return this.health <= 0;
+    }
+}

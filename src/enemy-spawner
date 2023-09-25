@@ -1,0 +1,19 @@
+import { Enemy } from './enemy';
+
+export class EnemySpawner {
+    private enemies: Enemy[];
+
+    constructor(enemies: Enemy[]) {
+      this.enemies = enemies;
+    }
+  
+    getEnemiesToSpawn(): Enemy[] {
+      const enemiesToSpawn: Enemy[] = [];
+      const numEnemies = Math.floor(Math.random() * 3) + 1; 
+      for (let i = 0; i < numEnemies; i++) {
+        const enemy = new Enemy(this.enemies[Math.floor(Math.random() * this.enemies.length)]);
+        enemiesToSpawn.push(enemy);
+      }
+      return enemiesToSpawn;
+    }
+}
