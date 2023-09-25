@@ -17,7 +17,7 @@ export interface Exit {
       this.title = title;
       this.description = description;
       this.exits = exits;
-      this.items = items;
+      this.items = items || [];
     }
   
     addExit(exit: Exit): void {

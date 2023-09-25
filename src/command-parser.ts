@@ -31,6 +31,10 @@ export interface Command {
       case 'south':
       case 'w':
       case 'west':
+      case 'u':
+      case 'up':
+      case 'd':
+      case 'down':
         return { name: CommandName.Move, args: [name.charAt(0)] };
       case 'look':
       case 'l':
