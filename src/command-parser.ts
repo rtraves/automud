@@ -14,6 +14,7 @@ export interface Command {
     Help = 'help',
     Drop = 'drop',
     Get = 'get',
+    Colors = 'colors',
   }
   
   export function parseCommand(input: string): Command {
@@ -53,6 +54,8 @@ export interface Command {
         return { name: CommandName.Get, args };
       case 'drop':
         return { name: CommandName.Drop, args };
+      case 'colors':
+        return { name: CommandName.Colors, args};
       default:
         return { name: '', args: [] };
     }

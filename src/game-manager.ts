@@ -87,12 +87,12 @@ export class GameManager {
         player.socket.end();
         break;
       case CommandName.Say:
-        const roomMessage = `${AnsiColor.LightBlue}${player.name} says: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
+        const roomMessage = `${AnsiColor.LightCyan}${player.name} says: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
         player.socket.write(roomMessage);
         broadcastToRoom(roomMessage, player, this.players);
         break;
       case CommandName.Chat:
-        const globalMessage = `${AnsiColor.Red}[Global] ${player.name}: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
+        const globalMessage = `${AnsiColor.LightRed}[Global] ${player.name}:${AnsiColor.White} ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
         broadcastToAll(globalMessage, this.players, player);
         break;
       case CommandName.Who:
@@ -110,7 +110,13 @@ export class GameManager {
       case CommandName.Get:
         this.handleGetCommand(player, command.args);
         break;
+      case CommandName.Colors:
+        this.handleColorsCommand(player);
+        break;
+
       default:
+
+
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
     }
   }
@@ -163,17 +169,10 @@ export class GameManager {
   }
   // TODO: move this to a separate file
   handleHelpCommand(player: Player) {
-    player.socket.write('Available commands:\r\n');
-    player.socket.write('- move (n/e/s/w)\r\n');
-    player.socket.write('- look\r\n');
-    player.socket.write('- quit\r\n');
-    player.socket.write('- say <message>\r\n');
-    player.socket.write('- chat <message>\r\n');
-    player.socket.write('- who\r\n');
-    player.socket.write('- inventory (inv/i)\r\n');
-    player.socket.write('- help\r\n');
-    player.socket.write('- drop <item>\r\n');
-    player.socket.write('- get <item>\r\n');
+    // for loop thru command names
+    for (let command in CommandName) {
+      player.socket.write(`${CommandName[command as keyof typeof CommandName]}\r\n`);
+    }
   }
   // TODO: move this to a separate file
   handleLookCommand(player: Player, room: Room | undefined) {
@@ -182,7 +181,7 @@ export class GameManager {
       player.socket.write(colorize(`${room.description}\r\n`, AnsiColor.Green));
       if (room.items && room.items.length > 0) {
         for( const item of room.items) {
-          player.socket.write(colorize(`${item.description}\r\n`, AnsiColor.Magenta));
+          player.socket.write(colorize(`${item.description}\r\n`, AnsiColor.Purple));
         }
       }
       const exitStrings = room.exits.map((exit) => `${exit.direction}`);
@@ -245,9 +244,12 @@ export class GameManager {
     player.socket.write(`You get ${item.description}.\r\n`);
     broadcastToRoom(`${player.name} gets ${item.description}.\r\n`, player, this.players);
   }
-};
 
-//TODO LIST
-// Allow color switching mid-string
-// Think about game state, how to save it, how to load it, how to reset it
-// Refactor commands to be more modular
+  handleColorsCommand(player: Player) {
+    player.socket.write('Available colors:\r\n');
+    // just for loop through the enum
+    for (let color in AnsiColor) {
+      player.socket.write(`${AnsiColor[color as keyof typeof AnsiColor]}${color}${AnsiColor.Reset}\r\n`);
+    }
+  }
+};
