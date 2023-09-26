@@ -54,7 +54,7 @@ export class GameManager {
 
   saveTick() {
     // save player data
-    console.log('Saving player data...');
+    // console.log('Saving player data...');
     this.players.forEach((player) => {
       player.save();
     });
@@ -76,6 +76,9 @@ export class GameManager {
     switch (command.name) {
       case CommandName.Move:
         this.handleMoveCommand(player, command);
+        break;
+      case CommandName.Kill:
+        this.handleKillCommand(player, command);
         break;
       case CommandName.Look:
         const room = this.rooms.get(player.currentRoom);
@@ -143,6 +146,22 @@ export class GameManager {
     // Also I kinda hate the 'handle' prefix
     this.handleLookCommand(player, newRoom);
   }
+
+  // TODO: move this to a separate file
+  handleKillCommand(player: Player, command: Command) {
+    const currentRoom = this.rooms.get(player.currentRoom);
+    if (!currentRoom) {
+      player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
+      return;
+    }
+    const targetName = command.args.join(' ');
+    const target = currentRoom.npcs.find((npc) => npc.name.toLowerCase() === targetName.toLowerCase());
+    if (!target) {
+      player.socket.write(`There is no ${targetName} here.\r\n`);
+      return;
+    }
+    player.attack(target);
+  }
   // TODO: move this to a separate file
   handleWhoCommand(player: Player) {
     const playerNames = Array.from(this.players.values()).map((p) => p.name).join('\n');
@@ -178,8 +197,14 @@ export class GameManager {
   // TODO: move this to a separate file
   handleLookCommand(player: Player, room: Room | undefined) {
     if (room) {
+      console.log(room);
       player.socket.write(colorize(`${room.title}\r\n`, AnsiColor.Cyan));
       player.socket.write(colorize(`${room.description}\r\n`, AnsiColor.Green));
+      if (room.npcs && room.npcs.length > 0) {
+        for (const npc of room.npcs) {
+          player.socket.write(colorize(`${npc.name}\r\n`, AnsiColor.Red));
+        }
+      }
       if (room.items && room.items.length > 0) {
         for( const item of room.items) {
           player.socket.write(colorize(`${item.description}\r\n`, AnsiColor.Magenta));

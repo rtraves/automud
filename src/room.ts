@@ -1,4 +1,5 @@
 import { Item } from "./item";
+import { NPC, NPCData } from "./npc";
 
 export interface Exit {
     direction: string;
@@ -11,13 +12,15 @@ export interface Exit {
     description: string;
     exits: Exit[];
     items: Item[];
+    npcs: NPC[];
   
-    constructor(id: string, title: string, description: string, exits: Exit[], items: Item[]) {
+    constructor(id: string, title: string, description: string, exits: Exit[], items: Item[], npcData: NPCData[]) {
       this.id = id;
       this.title = title;
       this.description = description;
       this.exits = exits;
       this.items = items;
+      this.npcs = npcData ? npcData.map((data) => new NPC(data, this)) : [];
     }
   
     addExit(exit: Exit): void {
@@ -28,8 +31,13 @@ export interface Exit {
       const exit = this.exits.find((exit) => exit.direction === direction);
       return exit ? exit.roomId : null;
     }
+
     addItem(item: Item): void {
       this.items.push(item);
+    }
+
+    addNPC(npc: NPC): void {
+      this.npcs.push(npc);
     }
   
     removeItem(item: Item): void {

@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as path from 'path';
 import { Item } from './item';
+import { NPC } from './npc';
 
 const playersDataPath = path.join(__dirname, '..', 'data', 'players');
 
@@ -59,6 +60,15 @@ export class Player {
     
   }
 
+  attack(target: NPC): void {
+    const damage = Math.floor(Math.random() * 10);
+    target.takeDamage(damage);
+    this.socket.write(`You attack ${target.name} for ${damage} damage.\r\n`);
+    if (target.health <= 0) {
+      this.socket.write(`You killed ${target.name}!\r\n`);
+    }
+  }
+
   static playerExists(name: string): boolean {
     return fs.existsSync(path.join(playersDataPath, `${name}.json`));
   }
@@ -79,7 +89,7 @@ export class Player {
       inventory: this.inventory,
       password: this.password,
     };
-    console.log(`Saving player ${this.name}...`);
+    // console.log(`Saving player ${this.name}...`);
     fs.writeFileSync(`./data/players/${this.name}.json`, JSON.stringify(playerData), 'utf-8');
   }
   load(): void {

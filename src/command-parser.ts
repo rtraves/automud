@@ -14,6 +14,7 @@ export interface Command {
     Help = 'help',
     Drop = 'drop',
     Get = 'get',
+    Kill = 'kill',
   }
   
   export function parseCommand(input: string): Command {
@@ -31,6 +32,9 @@ export interface Command {
       case 'w':
       case 'west':
         return { name: CommandName.Move, args: [name.charAt(0)] };
+      case 'k':
+      case 'kill':
+        return { name: CommandName.Kill, args };
       case 'look':
       case 'l':
         return { name: CommandName.Look, args };

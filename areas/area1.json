@@ -18,6 +18,23 @@
             "name": "Key",
             "description": "A small key."
           }
+        ],
+        "npcs": [
+          {
+            "id": 1,
+            "name": "Goblin",
+            "isFriendly": "false",
+            "description": "A small goblin.",
+            "health": 10,
+            "damage": 2,
+            "items": [
+              {
+                "id": 2,
+                "name": "Sword",
+                "description": "A small sword."
+              }
+            ]
+          }
         ]
       },
       {
