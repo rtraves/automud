@@ -160,7 +160,10 @@ export class GameManager {
       player.socket.write(`There is no ${targetName} here.\r\n`);
       return;
     }
-    player.attack(target);
+    if (!target.isFriendly) {
+      player.attack(target);
+    }
+    
   }
   // TODO: move this to a separate file
   handleWhoCommand(player: Player) {
