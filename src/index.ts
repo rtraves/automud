@@ -23,9 +23,8 @@ const server = net.createServer((socket) => {
     if (sessionOrPlayer instanceof Session) {
       sessionOrPlayer = handleLogin(sessionOrPlayer, socket, input);
       if (sessionOrPlayer instanceof Player) {
-        gameManager.players.set(sessionOrPlayer.id, sessionOrPlayer);
         gameManager.handleLookCommand(sessionOrPlayer, gameManager.rooms.get(sessionOrPlayer.currentRoom)!);
-      }        
+      }
     } else if (sessionOrPlayer instanceof Player) {
       const command: Command = parseCommand(input);
       gameManager.handleCommand(sessionOrPlayer, command);

@@ -35,27 +35,30 @@ export function handleLogin(session: Session, socket: net.Socket, input: string)
         }
       }
       break;
-    case session.expectingPassword:
-      const inputPassword = input;
-      if (session.newPlayer) {
-        const player = gameManager.convertSessionToPlayer(session, session.providedName!, inputPassword);
-        socket.write(`Hello, ${player.name}! Your account has been created.\r\n`);
-        return player; // Return the new Player instance
-      } else {
-        const tempPlayer = new Player(session.sessionId, 'area1_room1', socket);
-        tempPlayer.name = session.providedName!;
-        if (tempPlayer.attemptLogin(tempPlayer.name, inputPassword)) {
-          tempPlayer.load();
-          socket.write(`Welcome back, ${tempPlayer.name}!\r\n`);
-          return tempPlayer; // Return the logged-in Player instance
+      case session.expectingPassword:
+        const inputPassword = input;
+        if (session.newPlayer) {
+          const player = gameManager.convertSessionToPlayer(session, session.providedName!, inputPassword);
+          socket.write(`Hello, ${player.name}! Your account has been created.\r\n`);
+          return player; // Return the new Player instance
         } else {
-          socket.write(`Invalid username or password. Please try again.\r\n`);
-          socket.write('Please enter your username: ');
-          session.expectingName = true;
-          session.expectingPassword = false;
+          let existingPlayer = gameManager.players.get(session.providedName!);
+          if (!existingPlayer) {
+            existingPlayer = new Player(session.sessionId, 'area1_room1', socket);
+            existingPlayer.name = session.providedName!;
+          }
+          if (existingPlayer.attemptLogin(existingPlayer.name, inputPassword)) {
+            existingPlayer.load();
+            socket.write(`Welcome back, ${existingPlayer.name}!\r\n`);
+            return existingPlayer; // Return the logged-in Player instance
+          } else {
+            socket.write(`Invalid username or password. Please try again.\r\n`);
+            socket.write('Please enter your username: ');
+            session.expectingName = true;
+            session.expectingPassword = false;
+          }
         }
-      }
-      break;
+        break;
   }
   return session; // Return the session if no conversion happened
 }
