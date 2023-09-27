@@ -28,7 +28,7 @@ export class GameManager {
   }
 
   start() {
-    const areaPath = path.join(__dirname, '..', 'areas', 'area1.json');
+    const areaPath = path.join(__dirname, '..', 'areas', 'area1.yaml');
     const areaRooms = loadArea(areaPath);
 
     for (const [roomId, room] of areaRooms.entries()) {
@@ -53,8 +53,6 @@ export class GameManager {
   }
 
   saveTick() {
-    // save player data
-    console.log('Saving player data...');
     this.players.forEach((player) => {
       player.save();
     });
@@ -115,8 +113,6 @@ export class GameManager {
         break;
 
       default:
-
-
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
     }
   }
@@ -267,7 +263,6 @@ export class GameManager {
 
   handleColorsCommand(player: Player) {
     player.socket.write('Available colors:\r\n');
-    // just for loop through the enum
     for (let color in AnsiColor) {
       player.socket.write(`${AnsiColor[color as keyof typeof AnsiColor]}${color}${AnsiColor.Reset}\r\n`);
     }

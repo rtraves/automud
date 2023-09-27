@@ -38,6 +38,7 @@ export interface Command {
         return { name: CommandName.Move, args: [name.charAt(0)] };
       case 'look':
       case 'l':
+      case 'ls':
         return { name: CommandName.Look, args };
       case 'quit':
         return { name: CommandName.Quit, args};
