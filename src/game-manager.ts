@@ -28,7 +28,7 @@ export class GameManager {
   }
 
   start() {
-    const areaPath = path.join(__dirname, '..', 'areas', 'area1.json');
+    const areaPath = path.join(__dirname, '..', 'areas', 'area1.yaml');
     const areaRooms = loadArea(areaPath);
 
     for (const [roomId, room] of areaRooms.entries()) {

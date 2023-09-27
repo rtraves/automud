@@ -1,9 +1,21 @@
 import * as fs from 'fs';
 import { Room, Exit } from './room';
+import yaml from 'js-yaml';
+import { Item } from './item';
+
+interface AreaData {
+  rooms: {
+    id: string;
+    title: string;
+    description: string;
+    exits: Exit[];
+    items: Item[];
+  }[];
+}
 
 export function loadArea(areaPath: string): Map<string, Room> {
-  const areaJson = fs.readFileSync(areaPath, 'utf-8');
-  const areaData = JSON.parse(areaJson);
+  const areaFile = fs.readFileSync(areaPath, 'utf-8');
+  const areaData = yaml.load(areaFile) as AreaData;
 
   const areaRooms: Map<string, Room> = new Map();
 
