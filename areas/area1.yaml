@@ -19,6 +19,38 @@ rooms:
           - map
           - academy
           - academy map
+    npcs:
+      - id: 1
+        name: Goblin
+        description: A small, green creature with a large nose.
+        lookDescription: The goblin is small and green, with a large nose. It's wearing a tattered cloak.
+        keywords:
+          - g
+          - gob
+        isEnemy: true
+        maxHealth: 10
+        health: 10
+        damage: 1
+        respawnTime: 10000
+        items:
+          - id: 2
+            name: Sword of testing
+            description: A sword used for testing.
+            lookDescription: A sword used for testing.
+      - id: 2
+        name: instructor
+        description: A seasoned adventurer.
+        lookDescription: The instructor is a seasoned adventurer. He's wearing a suit of armor and carrying a sword.
+        isEnemy: false
+        maxHealth: 100
+        health: 100
+        damage: 10
+        respawnTime: 10000
+        items:
+          - id: 3
+            name: Sword of testing
+            description: A sword used for testing.
+            lookDescription: A sword used for testing.
 
   - id: area1_room2
     title: Academy Garden
