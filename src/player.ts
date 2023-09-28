@@ -15,12 +15,35 @@ export interface PlayerData {
   password?: string;
 }
 
-export interface PlayerInventory {
+export class PlayerInventory {
   items: Item[];
-  addItem(item: Item): void;
-  removeItem(item: Item): void;
-  readonly length: number;
-  findItem(itemName: string): Item | undefined;
+
+  constructor(items: Item[] = []) {
+    this.items = items;
+  }
+
+  addItem(item: Item): void {
+    this.items.push(item);
+  }
+
+  removeItem(item: Item): void {
+    const itemIndex = this.items.findIndex((i) => i.id === item.id);
+    if (itemIndex > -1) {
+      this.items.splice(itemIndex, 1);
+    }
+  }
+
+  get length(): number {
+    return this.items.length;
+  }
+
+  findItem(itemName: string): Item | undefined {
+    const searchTerm = itemName.toLowerCase();
+    return this.items.find((item) => 
+        item.name.toLowerCase() === searchTerm || 
+        item.keywords?.includes(searchTerm)
+    );
+  }
 }
 
 export class Player {
@@ -36,24 +59,7 @@ export class Player {
     this.id = id;
     this.name = '';
     this.currentRoom = currentRoom;
-    this.inventory = {
-      items: [],
-      addItem(item: Item): void {
-        this.items.push(item);
-      },
-      removeItem(item: Item): void {
-        const itemIndex = this.items.findIndex((i) => i.id === item.id);
-        if (itemIndex > -1) {
-          this.items.splice(itemIndex, 1);
-        }
-      },
-      get length(): number {
-        return this.items.length;
-      },
-      findItem(itemName: string): Item | undefined {
-        return this.items.find((item) => item.name.toLowerCase() === itemName.toLowerCase());
-      }
-    };
+    this.inventory = new PlayerInventory();
     this.disconnected = false;
     this.socket = socket;
     this.save = this.save.bind(this);
@@ -99,11 +105,11 @@ export class Player {
       this.name = playerData.name;
       this.password = playerData.password;
       this.currentRoom = playerData.currentRoom;
-      this.inventory = playerData.inventory;
+      this.inventory = new PlayerInventory(playerData.inventory.items);
     } catch (err) {
       console.error(`Failed to load player data for ${this.name}. Error: ${err}`);
     }
-  }
+}
 
   attemptLogin(name: string, password: string): boolean {
     try{

@@ -28,7 +28,7 @@ export class GameManager {
   }
 
   start() {
-    const areaPath = path.join(__dirname, '..', 'areas', 'area1.json');
+    const areaPath = path.join(__dirname, '..', 'areas', 'area1.yaml');
     const areaRooms = loadArea(areaPath);
 
     for (const [roomId, room] of areaRooms.entries()) {
@@ -53,8 +53,6 @@ export class GameManager {
   }
 
   saveTick() {
-    // save player data
-    console.log('Saving player data...');
     this.players.forEach((player) => {
       player.save();
     });
@@ -90,12 +88,12 @@ export class GameManager {
         player.socket.end();
         break;
       case CommandName.Say:
-        const roomMessage = `${AnsiColor.LightBlue}${player.name} says: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
+        const roomMessage = `${AnsiColor.LightCyan}${player.name} says: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
         player.socket.write(roomMessage);
         broadcastToRoom(roomMessage, player, this.players);
         break;
       case CommandName.Chat:
-        const globalMessage = `${AnsiColor.Red}[Global] ${player.name}: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
+        const globalMessage = `${AnsiColor.LightRed}[Global] ${player.name}:${AnsiColor.White} ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
         broadcastToAll(globalMessage, this.players, player);
         break;
       case CommandName.Who:
@@ -113,6 +111,10 @@ export class GameManager {
       case CommandName.Get:
         this.handleGetCommand(player, command.args);
         break;
+      case CommandName.Colors:
+        this.handleColorsCommand(player);
+        break;
+
       default:
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
     }
@@ -185,26 +187,20 @@ export class GameManager {
   }
   // TODO: move this to a separate file
   handleHelpCommand(player: Player) {
-    player.socket.write('Available commands:\r\n');
-    player.socket.write('- move (n/e/s/w)\r\n');
-    player.socket.write('- look\r\n');
-    player.socket.write('- quit\r\n');
-    player.socket.write('- say <message>\r\n');
-    player.socket.write('- chat <message>\r\n');
-    player.socket.write('- who\r\n');
-    player.socket.write('- inventory (inv/i)\r\n');
-    player.socket.write('- help\r\n');
-    player.socket.write('- drop <item>\r\n');
-    player.socket.write('- get <item>\r\n');
-    player.socket.write('- kill <npc>\r\n');
+    // for loop thru command names
+    for (let command in CommandName) {
+      player.socket.write(`${CommandName[command as keyof typeof CommandName]}\r\n`);
+    }
   }
   // TODO: move this to a separate file
   // Also bug for some reason isEnemy is not evaluating appropriatly
-  handleLookCommand(player: Player, room: Room | undefined) {
-    if (room) {
-      player.socket.write(colorize(`${room.title}\r\n`, AnsiColor.Cyan));
-      player.socket.write(colorize(`${room.description}\r\n`, AnsiColor.Green));
-      if (room.npcs && room.npcs.length > 0) {
+  handleLookCommand(player: Player, room: Room | undefined, args?: string[]) {
+    // If no specific item is mentioned, show the room description
+    if (!args || args.length === 0) {
+        if (room) {
+            player.socket.write(colorize(`${room.title}\r\n`, AnsiColor.Cyan));
+            player.socket.write(colorize(`${room.description}\r\n`, AnsiColor.Green));
+            if (room.npcs && room.npcs.length > 0) {
         for (const npc of room.npcs) {
           if (npc.isEnemy) {
             player.socket.write(colorize(`${npc.name}\r\n`, AnsiColor.Red));
@@ -215,16 +211,31 @@ export class GameManager {
         }
       }
       if (room.items && room.items.length > 0) {
-        for( const item of room.items) {
-          player.socket.write(colorize(`${item.description}\r\n`, AnsiColor.Magenta));
+                for (const item of room.items) {
+                    player.socket.write(colorize(`${item.description}\r\n`, AnsiColor.Purple));
+                }
+            }
+            const exitStrings = room.exits.map((exit) => `${exit.direction}`);
+            player.socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AnsiColor.Yellow));
+        } else {
+            player.socket.write('An error occurred. The current room does not exist.\r\n');
         }
-      }
-      const exitStrings = room.exits.map((exit) => `${exit.direction}`);
-      player.socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AnsiColor.Yellow));
     } else {
-      player.socket.write('An error occurred. The current room does not exist.\r\n');
+        // If a specific item is mentioned, show the item's lookDescription
+        const itemName = args.join(' ').toLowerCase();
+        const itemInInventory = player.inventory.findItem(itemName);
+        const itemInRoom = room?.items.find(item => item.name.toLowerCase() === itemName);
+
+        if (itemInInventory) {
+            player.socket.write(itemInInventory.lookDescription + '\r\n');
+        } else if (itemInRoom) {
+            player.socket.write(itemInRoom.lookDescription + '\r\n');
+        } else {
+            player.socket.write(`You can't find ${itemName} to look at.\r\n`);
+        }
     }
-  }
+}
+
   // TODO: move this to a separate file
   handleDropCommand(player: Player, args: string[]) {
     if (args.length === 0) {
@@ -267,7 +278,10 @@ export class GameManager {
       return;
     }
 
-    const item = currentRoom.items.find((item) => item.name.toLowerCase() === itemName.toLowerCase());
+    const item = currentRoom.items.find((item) => 
+      item.name.toLowerCase() === itemName || 
+      item.keywords?.includes(itemName)
+    );
 
     if (!item) {
       player.socket.write(`There is no ${itemName} here.\r\n`);
@@ -279,9 +293,11 @@ export class GameManager {
     player.socket.write(`You get ${item.description}.\r\n`);
     broadcastToRoom(`${player.name} gets ${item.description}.\r\n`, player, this.players);
   }
-};
 
-//TODO LIST
-// Allow color switching mid-string
-// Think about game state, how to save it, how to load it, how to reset it
-// Refactor commands to be more modular
+  handleColorsCommand(player: Player) {
+    player.socket.write('Available colors:\r\n');
+    for (let color in AnsiColor) {
+      player.socket.write(`${AnsiColor[color as keyof typeof AnsiColor]}${color}${AnsiColor.Reset}\r\n`);
+    }
+  }
+};

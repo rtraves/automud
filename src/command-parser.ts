@@ -15,6 +15,7 @@ export interface Command {
     Drop = 'drop',
     Get = 'get',
     Kill = 'kill',
+    Colors = 'colors',
   }
   
   export function parseCommand(input: string): Command {
@@ -31,12 +32,17 @@ export interface Command {
       case 'south':
       case 'w':
       case 'west':
+      case 'u':
+      case 'up':
+      case 'd':
+      case 'down':
         return { name: CommandName.Move, args: [name.charAt(0)] };
       case 'k':
       case 'kill':
         return { name: CommandName.Kill, args };
       case 'look':
       case 'l':
+      case 'ls':
         return { name: CommandName.Look, args };
       case 'quit':
         return { name: CommandName.Quit, args};
@@ -57,6 +63,8 @@ export interface Command {
         return { name: CommandName.Get, args };
       case 'drop':
         return { name: CommandName.Drop, args };
+      case 'colors':
+        return { name: CommandName.Colors, args};
       default:
         return { name: '', args: [] };
     }

@@ -1,0 +1,92 @@
+id: area1
+name: Newhaven Academy
+rooms:
+  - id: area1_room1
+    title: Newhaven Academy Entrance
+    description: |
+      You stand at the grand entrance of the Newhaven Academy, a place where many adventurers begin their journey.
+      A large wooden sign reads: 'Welcome to Newhaven Academy. Learn, explore, and grow.'
+      To the east, you see a pathway leading to a garden.
+    exits:
+      - direction: east
+        roomId: area1_room2
+    items:
+      - id: 1
+        name: Academy Map
+        description: A detailed map of Newhaven Academy.
+        lookDescription: The map shows the layout of the academy. It's a large place, with many rooms to explore.
+        keywords:
+          - map
+          - academy
+          - academy map
+
+  - id: area1_room2
+    title: Academy Garden
+    description: |
+      You're surrounded by vibrant flowers and the soft hum of bees. A serene pond lies to the north, while a
+      cobblestone path leads west back to the academy entrance and east to a training ground.
+    exits:
+      - direction: west
+        roomId: area1_room1
+      - direction: east
+        roomId: area1_room3
+      - direction: north
+        roomId: area1_room7
+
+  - id: area1_room3
+    title: Training Grounds
+    description: |
+      This is where new adventurers practice their skills. Training dummies are scattered around, and a seasoned
+      instructor offers guidance. To the west, you see the garden.
+    exits:
+      - direction: west
+        roomId: area1_room2
+      - direction: east
+        roomId: area1_room4
+
+  - id: area1_room4
+    title: Academy Library
+    description: |
+      Rows of ancient books line the walls. Scholars and mages often frequent this place, seeking knowledge.
+      A staircase leads up to a study room.
+    exits:
+      - direction: west
+        roomId: area1_room3
+      - direction: up
+        roomId: area1_room8
+
+  - id: area1_room5
+    title: Mage's Tower
+    description: |
+      A place where magic users come to hone their craft. The air is thick with arcane energy.
+      A portal to the east shimmers mysteriously.
+    exits:
+      - direction: east
+        roomId: area1_room6
+
+  - id: area1_room6
+    title: Mystical Glade
+    description: |
+      You've stepped through the portal into a serene glade. The air is cool, and a gentle stream flows nearby.
+      You feel a sense of calm wash over you.
+    exits:
+      - direction: west
+        roomId: area1_room5
+
+  - id: area1_room7
+    title: Pond's Edge
+    description: |
+      The calm waters of the pond reflect the sky. It's a peaceful spot, perfect for reflection. A small boat
+      is tied to a post, seemingly inviting you to explore further.
+    exits:
+      - direction: south
+        roomId: area1_room2
+
+  - id: area1_room8
+    title: Study Room
+    description: |
+      A quiet room overlooking the academy. Students come here to read and study in peace. A telescope
+      points out of a window, offering a view of the stars.
+    exits:
+      - direction: down
+        roomId: area1_room4

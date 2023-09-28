@@ -19,7 +19,7 @@ export interface Exit {
       this.title = title;
       this.description = description;
       this.exits = exits;
-      this.items = items;
+      this.items = items || [];
       this.npcs = npcData ? npcData.map((data) => new NPC(data, this)) : [];
     }
   
