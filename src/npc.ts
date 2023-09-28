@@ -4,32 +4,38 @@ import { Room } from './room';
 export interface NPCData {
     id: string;
     name: string;
-    isFriendly: boolean;
+    isEnemy: boolean;
     description: string;
+    maxHealth: number;
     health: number;
     damage: number;
     items: Item[];
+    respawnTime: number;
 }
 
 export class NPC {
     id: string;
     name: string;
-    isFriendly: boolean;
+    isEnemy: boolean;
     description: string;
+    maxHealth: number;
     health: number;
     damage: number;
     items: Item[];
     room: Room;
+    respawnTime: number;
 
     constructor(data: NPCData, room: Room) {
         this.id = data.id;
         this.name = data.name;
-        this.isFriendly = data.isFriendly;
+        this.isEnemy = data.isEnemy;
         this.description = data.description;
+        this.maxHealth = data.maxHealth;
         this.health = data.health;
         this.damage = data.damage;
         this.items = data.items;
         this.room = room;
+        this.respawnTime = data.respawnTime;
     }
 
     takeDamage(damage: number): void {
@@ -40,7 +46,15 @@ export class NPC {
             if (index > -1) {
                 this.room.npcs.splice(index, 1);
                 this.room.items.push(...this.items);
+                if (this.respawnTime > 0) {
+                    setTimeout(() => this.respawn(), this.respawnTime);
+                }
             }
         }
+    }
+
+    respawn(): void {
+        this.health = this.maxHealth;
+        this.room.npcs.push(this);
     }
 }

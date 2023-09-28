@@ -54,7 +54,7 @@ export class GameManager {
 
   saveTick() {
     // save player data
-    // console.log('Saving player data...');
+    console.log('Saving player data...');
     this.players.forEach((player) => {
       player.save();
     });
@@ -148,6 +148,7 @@ export class GameManager {
   }
 
   // TODO: move this to a separate file
+  // Also bug for some reason isEnemy is not evaluating appropriatly
   handleKillCommand(player: Player, command: Command) {
     const currentRoom = this.rooms.get(player.currentRoom);
     if (!currentRoom) {
@@ -160,10 +161,9 @@ export class GameManager {
       player.socket.write(`There is no ${targetName} here.\r\n`);
       return;
     }
-    if (!target.isFriendly) {
-      player.attack(target);
-    }
-    
+
+    player.attack(target);
+
   }
   // TODO: move this to a separate file
   handleWhoCommand(player: Player) {
@@ -196,16 +196,22 @@ export class GameManager {
     player.socket.write('- help\r\n');
     player.socket.write('- drop <item>\r\n');
     player.socket.write('- get <item>\r\n');
+    player.socket.write('- kill <npc>\r\n');
   }
   // TODO: move this to a separate file
+  // Also bug for some reason isEnemy is not evaluating appropriatly
   handleLookCommand(player: Player, room: Room | undefined) {
     if (room) {
-      console.log(room);
       player.socket.write(colorize(`${room.title}\r\n`, AnsiColor.Cyan));
       player.socket.write(colorize(`${room.description}\r\n`, AnsiColor.Green));
       if (room.npcs && room.npcs.length > 0) {
         for (const npc of room.npcs) {
-          player.socket.write(colorize(`${npc.name}\r\n`, AnsiColor.Red));
+          if (npc.isEnemy) {
+            player.socket.write(colorize(`${npc.name}\r\n`, AnsiColor.Red));
+          }
+          else {
+            player.socket.write(colorize(`${npc.name}\r\n`, AnsiColor.Yellow));
+          }
         }
       }
       if (room.items && room.items.length > 0) {

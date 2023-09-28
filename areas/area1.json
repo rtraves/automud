@@ -23,15 +23,34 @@
           {
             "id": 1,
             "name": "Goblin",
-            "isFriendly": "false",
+            "isEnemy": "true",
             "description": "A small goblin.",
+            "maxHealth": 10,
             "health": 10,
             "damage": 2,
+            "respawnTime": 10000,
             "items": [
               {
                 "id": 2,
                 "name": "Sword",
                 "description": "A small sword."
+              }
+            ]
+          },
+          {
+            "id": 1,
+            "name": "Quest Giver",
+            "isEnemy": "false",
+            "description": "an old man",
+            "maxHealth": 100,
+            "health": 100,
+            "damage": 200,
+            "respawnTime": 10000,
+            "items": [
+              {
+                "id": 2,
+                "name": "quest item 1",
+                "description": "its a quest item"
               }
             ]
           }
