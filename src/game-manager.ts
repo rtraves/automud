@@ -76,7 +76,7 @@ export class GameManager {
         this.handleMoveCommand(player, command);
         break;
       case CommandName.Kill:
-        this.handleKillCommand(player, command);
+        this.handleKillCommand(player, command.args);
         break;
       case CommandName.Look:
         const room = this.rooms.get(player.currentRoom);
@@ -148,24 +148,32 @@ export class GameManager {
     // Also I kinda hate the 'handle' prefix
     this.handleLookCommand(player, newRoom);
   }
-
   // TODO: move this to a separate file
-  // Also bug for some reason isEnemy is not evaluating appropriatly
-  handleKillCommand(player: Player, command: Command) {
+  handleKillCommand(player: Player, args: string[]) {
     const currentRoom = this.rooms.get(player.currentRoom);
+
     if (!currentRoom) {
       player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
       return;
     }
-    const targetName = command.args.join(' ');
-    const target = currentRoom.npcs.find((npc) => npc.name.toLowerCase() === targetName.toLowerCase());
+
+    const targetName = args.join(' ');
+    const target = currentRoom.npcs.find((npc) => 
+      npc.name.toLowerCase() === targetName.toLowerCase()
+      || npc.keywords?.includes(targetName.toLowerCase())
+    );
+
     if (!target) {
       player.socket.write(`There is no ${targetName} here.\r\n`);
       return;
     }
 
-    player.attack(target);
-
+    if (target.isEnemy) {
+      player.attack(target);
+    }
+    else {
+      player.socket.write(`You can't attack ${targetName}.\r\n`);
+    }
   }
   // TODO: move this to a separate file
   handleWhoCommand(player: Player) {

@@ -95,7 +95,7 @@ export class Player {
       inventory: this.inventory,
       password: this.password,
     };
-    // console.log(`Saving player ${this.name}...`);
+
     fs.writeFileSync(`./data/players/${this.name}.json`, JSON.stringify(playerData), 'utf-8');
   }
   load(): void {
@@ -107,6 +107,7 @@ export class Player {
       this.currentRoom = playerData.currentRoom;
       this.inventory = new PlayerInventory(playerData.inventory.items);
     } catch (err) {
+      // TODO: Add this to a log file instead of console.error
       console.error(`Failed to load player data for ${this.name}. Error: ${err}`);
     }
 }

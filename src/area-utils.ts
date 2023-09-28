@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import { Room, Exit } from './room';
 import yaml from 'js-yaml';
 import { Item } from './item';
+import { NPC, NPCData } from './npc';
 
 interface AreaData {
   rooms: {
@@ -10,6 +11,7 @@ interface AreaData {
     description: string;
     exits: Exit[];
     items: Item[];
+    npcs: NPCData[];
   }[];
 }
 

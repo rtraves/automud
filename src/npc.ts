@@ -6,10 +6,12 @@ export interface NPCData {
     name: string;
     isEnemy: boolean;
     description: string;
+    lookDescription?: string;
+    keywords?: string[];
     maxHealth: number;
     health: number;
     damage: number;
-    items: Item[];
+    items?: Item[];
     respawnTime: number;
 }
 
@@ -18,10 +20,12 @@ export class NPC {
     name: string;
     isEnemy: boolean;
     description: string;
+    lookDescription?: string;
+    keywords?: string[];
     maxHealth: number;
     health: number;
     damage: number;
-    items: Item[];
+    items?: Item[];
     room: Room;
     respawnTime: number;
 
@@ -30,6 +34,8 @@ export class NPC {
         this.name = data.name;
         this.isEnemy = data.isEnemy;
         this.description = data.description;
+        this.lookDescription = data.lookDescription;
+        this.keywords = data.keywords;
         this.maxHealth = data.maxHealth;
         this.health = data.health;
         this.damage = data.damage;
@@ -45,7 +51,10 @@ export class NPC {
             const index = this.room.npcs.indexOf(this);
             if (index > -1) {
                 this.room.npcs.splice(index, 1);
-                this.room.items.push(...this.items);
+                if (this.items) {
+                    this.room.items.push(...this.items);
+                }
+
                 if (this.respawnTime > 0) {
                     setTimeout(() => this.respawn(), this.respawnTime);
                 }
