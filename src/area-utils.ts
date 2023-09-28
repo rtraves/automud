@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import { Room, Exit } from './room';
 import yaml from 'js-yaml';
 import { Item } from './item';
+import { NPC, NPCData } from './npc';
 
 interface AreaData {
   rooms: {
@@ -10,6 +11,7 @@ interface AreaData {
     description: string;
     exits: Exit[];
     items: Item[];
+    npcs: NPCData[];
   }[];
 }
 
@@ -20,7 +22,7 @@ export function loadArea(areaPath: string): Map<string, Room> {
   const areaRooms: Map<string, Room> = new Map();
 
   for (const roomData of areaData.rooms) {
-    const room = new Room(roomData.id, roomData.title, roomData.description, roomData.exits as Exit[], roomData.items);
+    const room = new Room(roomData.id, roomData.title, roomData.description, roomData.exits as Exit[], roomData.items, roomData.npcs);
     areaRooms.set(room.id, room);
   }
 

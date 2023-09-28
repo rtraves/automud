@@ -14,6 +14,7 @@ export interface Command {
     Help = 'help',
     Drop = 'drop',
     Get = 'get',
+    Kill = 'kill',
     Colors = 'colors',
   }
   
@@ -36,6 +37,9 @@ export interface Command {
       case 'd':
       case 'down':
         return { name: CommandName.Move, args: [name.charAt(0)] };
+      case 'k':
+      case 'kill':
+        return { name: CommandName.Kill, args };
       case 'look':
       case 'l':
       case 'ls':

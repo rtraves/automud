@@ -75,6 +75,9 @@ export class GameManager {
       case CommandName.Move:
         this.handleMoveCommand(player, command);
         break;
+      case CommandName.Kill:
+        this.handleKillCommand(player, command.args);
+        break;
       case CommandName.Look:
         const room = this.rooms.get(player.currentRoom);
         this.handleLookCommand(player,room);
@@ -146,6 +149,33 @@ export class GameManager {
     this.handleLookCommand(player, newRoom);
   }
   // TODO: move this to a separate file
+  handleKillCommand(player: Player, args: string[]) {
+    const currentRoom = this.rooms.get(player.currentRoom);
+
+    if (!currentRoom) {
+      player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
+      return;
+    }
+
+    const targetName = args.join(' ');
+    const target = currentRoom.npcs.find((npc) => 
+      npc.name.toLowerCase() === targetName.toLowerCase()
+      || npc.keywords?.includes(targetName.toLowerCase())
+    );
+
+    if (!target) {
+      player.socket.write(`There is no ${targetName} here.\r\n`);
+      return;
+    }
+
+    if (target.isEnemy) {
+      player.attack(target);
+    }
+    else {
+      player.socket.write(`You can't attack ${targetName}.\r\n`);
+    }
+  }
+  // TODO: move this to a separate file
   handleWhoCommand(player: Player) {
     const playerNames = Array.from(this.players.values()).map((p) => p.name).join('\n');
     const message = `Players online:\n----------------------------\n${playerNames}\r\n`;
@@ -171,13 +201,24 @@ export class GameManager {
     }
   }
   // TODO: move this to a separate file
+  // Also bug for some reason isEnemy is not evaluating appropriatly
   handleLookCommand(player: Player, room: Room | undefined, args?: string[]) {
     // If no specific item is mentioned, show the room description
     if (!args || args.length === 0) {
         if (room) {
             player.socket.write(colorize(`${room.title}\r\n`, AnsiColor.Cyan));
             player.socket.write(colorize(`${room.description}\r\n`, AnsiColor.Green));
-            if (room.items && room.items.length > 0) {
+            if (room.npcs && room.npcs.length > 0) {
+        for (const npc of room.npcs) {
+          if (npc.isEnemy) {
+            player.socket.write(colorize(`${npc.name}\r\n`, AnsiColor.Red));
+          }
+          else {
+            player.socket.write(colorize(`${npc.name}\r\n`, AnsiColor.Yellow));
+          }
+        }
+      }
+      if (room.items && room.items.length > 0) {
                 for (const item of room.items) {
                     player.socket.write(colorize(`${item.description}\r\n`, AnsiColor.Purple));
                 }
