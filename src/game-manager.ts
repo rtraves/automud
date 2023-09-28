@@ -49,10 +49,11 @@ export class GameManager {
   stop() {}
 
   gameTick() {
-
+  
   }
 
   saveTick() {
+    console.log('Saving players...');
     this.players.forEach((player) => {
       player.save();
     });
@@ -60,7 +61,6 @@ export class GameManager {
 
   convertSessionToPlayer(session: Session, providedName: string, password: string): Player {
     const player = Player.createNewPlayer(providedName, password, session.socket);
-    this.players.set(session.sessionId, player);
     this.sessions.delete(session.sessionId);
     return player;
   }
@@ -178,6 +178,10 @@ export class GameManager {
   // TODO: move this to a separate file
   handleWhoCommand(player: Player) {
     const playerNames = Array.from(this.players.values()).map((p) => p.name).join('\n');
+    const names = [];
+    for (const player of this.players.values()) {
+      names.push(player.name);
+    }
     const message = `Players online:\n----------------------------\n${playerNames}\r\n`;
     player.socket.write(`${AnsiColor.Cyan}${message}${AnsiColor.Reset}`);
   }
