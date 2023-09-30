@@ -114,7 +114,7 @@ export function handleLookCommand(player: Player, room: Room | undefined, args?:
                 }
             }
             const exitStrings = room.exits.map((exit) => `${exit.direction}`);
-            player.socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AnsiColor.Yellow));
+            player.socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n\n`, AnsiColor.Yellow));
         } else {
             player.socket.write('An error occurred. The current room does not exist.\r\n');
         }

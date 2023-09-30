@@ -26,6 +26,7 @@ const server = net.createServer((socket) => {
       if (sessionOrPlayer instanceof Player) {
         gameManager.players.set(sessionOrPlayer.name, sessionOrPlayer);
         handleLookCommand(sessionOrPlayer, gameManager.rooms.get(sessionOrPlayer.currentRoom)!);
+        sessionOrPlayer.socket.write(sessionOrPlayer.getPrompt());
       }
     } else if (sessionOrPlayer instanceof Player) {
       const command: Command = parseCommand(input);

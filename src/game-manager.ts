@@ -119,5 +119,6 @@ export class GameManager {
       default:
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
     }
+    player.socket.write(player.getPrompt());
   }
 };
