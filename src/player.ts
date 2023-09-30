@@ -4,7 +4,7 @@ import * as crypto from 'crypto';
 import * as path from 'path';
 import { Item } from './item';
 import { NPC } from './npc';
-import { AnsiColor, colorize } from './ansi-colors';
+import { AC, colorize } from './ansi-colors';
 
 const playersDataPath = path.join(__dirname, '..', 'data', 'players');
 
@@ -156,6 +156,6 @@ export class Player {
     return hash.digest('hex');
   }
   getPrompt(): string {
-    return `<${AnsiColor.LightGreen}HP:${this.health} ${AnsiColor.LightCyan}MP:${this.mana}${AnsiColor.LightYellow} ST:${this.stamina}${AnsiColor.Reset}> `;
+    return `<${AC.LightGreen}HP:${this.health} ${AC.LightCyan}MP:${this.mana}${AC.LightYellow} ST:${this.stamina}${AC.Reset}> `;
 }
 }

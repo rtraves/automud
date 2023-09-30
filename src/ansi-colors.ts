@@ -1,4 +1,4 @@
-export enum AnsiColor {
+export enum AC {
   Reset = '\x1b[0m',
   Black = '\x1b[30m',
   Red = '\x1b[31m',
@@ -34,8 +34,8 @@ const colorCodes: { [code: string]: string } = {
     "&Y": "\x1b[93m", // Light Yellow
 };
   
-export function colorize(text: string, color: AnsiColor): string {
-  return color + text + AnsiColor.Reset;
+export function colorize(text: string, color: AC): string {
+  return color + text + AC.Reset;
 }
 
 export function colorizeString(input: string): string {

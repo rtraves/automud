@@ -3,7 +3,7 @@ import * as path from 'path';
 import { Player } from './player';
 import { Room } from './room';
 import { CommandName, Command } from './command-parser';
-import { AnsiColor, colorize } from './ansi-colors';
+import { AC, colorize } from './ansi-colors';
 import { loadArea, findExitByDirection } from './area-utils';
 import { broadcastToRoom, broadcastToAll } from './broadcast-utils';
 import { Session } from './session';
@@ -89,12 +89,12 @@ export class GameManager {
         player.socket.end();
         break;
       case CommandName.Say:
-        const roomMessage = `${AnsiColor.LightCyan}${player.name} says: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
+        const roomMessage = `${AC.LightCyan}${player.name} says: ${command.args.join(' ')}${AC.Reset}\r\n`;
         player.socket.write(roomMessage);
         broadcastToRoom(roomMessage, player, this.players);
         break;
       case CommandName.Chat:
-        const globalMessage = `${AnsiColor.LightRed}[Global] ${player.name}:${AnsiColor.White} ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
+        const globalMessage = `${AC.LightRed}[Global] ${player.name}:${AC.White} ${command.args.join(' ')}${AC.Reset}\r\n`;
         broadcastToAll(globalMessage, this.players, player);
         break;
       case CommandName.Who:
@@ -119,6 +119,6 @@ export class GameManager {
       default:
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
     }
-    player.socket.write(player.getPrompt());
+    player.socket.write('\n' + player.getPrompt());
   }
 };

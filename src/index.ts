@@ -5,6 +5,7 @@ import { handleLogin } from './login';
 import { Session } from './session';
 import { Player } from './player';
 import { handleLookCommand } from './commands';
+import { AC } from './ansi-colors';
 
 const PORT = parseInt(process.env.PORT as string, 10) || 4444;
 const gameManager = GameManager.getInstance();
@@ -15,8 +16,8 @@ const server = net.createServer((socket) => {
 
   let sessionOrPlayer: Session | Player = gameManager.initSession(socket);
 
-  socket.write('Welcome to the MUD!\r\n');
-  socket.write('Enter your username or type `new` to create a new user: ');
+  socket.write(`${AC.Cyan}Welcome to the MUD!${AC.Reset}\r\n`);
+  socket.write(`Enter your ${AC.LightYellow}username${AC.Reset} or type ${AC.LightGreen}'new' ${AC.Reset}to create a new user: `);
 
   socket.on('data', (data) => {
     const input = data.toString().trim();
@@ -26,7 +27,7 @@ const server = net.createServer((socket) => {
       if (sessionOrPlayer instanceof Player) {
         gameManager.players.set(sessionOrPlayer.name, sessionOrPlayer);
         handleLookCommand(sessionOrPlayer, gameManager.rooms.get(sessionOrPlayer.currentRoom)!);
-        sessionOrPlayer.socket.write(sessionOrPlayer.getPrompt());
+        sessionOrPlayer.socket.write('\n' + sessionOrPlayer.getPrompt());
       }
     } else if (sessionOrPlayer instanceof Player) {
       const command: Command = parseCommand(input);

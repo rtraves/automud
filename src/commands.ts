@@ -4,7 +4,7 @@ import { Player } from './player';
 import { findExitByDirection } from './area-utils';
 import { broadcastToRoom } from './broadcast-utils';
 import { Room } from './room';
-import { AnsiColor, colorize } from './ansi-colors';
+import { AC, colorize } from './ansi-colors';
 
 
 export function handleMoveCommand(gameManager: GameManager, player: Player, command: Command) {
@@ -69,7 +69,7 @@ export function handleWhoCommand(gameManager: GameManager,player: Player) {
       names.push(player.name);
     }
     const message = `Players online:\n----------------------------\n${playerNames}\r\n`;
-    player.socket.write(`${AnsiColor.Cyan}${message}${AnsiColor.Reset}`);
+    player.socket.write(`${AC.Cyan}${message}${AC.Reset}`);
   }
 
 export function handleInventoryCommand(player: Player) {
@@ -96,25 +96,25 @@ export function handleLookCommand(player: Player, room: Room | undefined, args?:
     // If no specific item is mentioned, show the room description
     if (!args || args.length === 0) {
         if (room) {
-            player.socket.write(colorize(`${room.title}\r\n`, AnsiColor.Cyan));
-            player.socket.write(colorize(`${room.description}\r\n`, AnsiColor.Green));
+            player.socket.write(colorize(`${room.title}\r\n`, AC.Cyan));
+            player.socket.write(colorize(`${room.description}\r\n`, AC.Green));
             if (room.npcs && room.npcs.length > 0) {
         for (const npc of room.npcs) {
           if (npc.isEnemy) {
-            player.socket.write(colorize(`${npc.name}\r\n`, AnsiColor.Red));
+            player.socket.write(colorize(`${npc.name}\r\n`, AC.Red));
           }
           else {
-            player.socket.write(colorize(`${npc.name}\r\n`, AnsiColor.Yellow));
+            player.socket.write(colorize(`${npc.name}\r\n`, AC.Yellow));
           }
         }
       }
       if (room.items && room.items.length > 0) {
                 for (const item of room.items) {
-                    player.socket.write(colorize(`${item.description}\r\n`, AnsiColor.Purple));
+                    player.socket.write(colorize(`${item.description}\r\n`, AC.Purple));
                 }
             }
             const exitStrings = room.exits.map((exit) => `${exit.direction}`);
-            player.socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n\n`, AnsiColor.Yellow));
+            player.socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AC.Yellow));
         } else {
             player.socket.write('An error occurred. The current room does not exist.\r\n');
         }
@@ -193,7 +193,7 @@ export function handleGetCommand(gameManager: GameManager,player: Player, args: 
 
 export function handleColorsCommand(player: Player) {
     player.socket.write('Available colors:\r\n');
-    for (let color in AnsiColor) {
-      player.socket.write(`${AnsiColor[color as keyof typeof AnsiColor]}${color}${AnsiColor.Reset}\r\n`);
+    for (let color in AC) {
+      player.socket.write(`${AC[color as keyof typeof AC]}${color}${AC.Reset}\r\n`);
     }
 }
