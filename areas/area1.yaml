@@ -10,47 +10,6 @@ rooms:
     exits:
       - direction: east
         roomId: area1_room2
-    items:
-      - id: 1
-        name: Academy Map
-        description: A detailed map of Newhaven Academy.
-        lookDescription: The map shows the layout of the academy. It's a large place, with many rooms to explore.
-        keywords:
-          - map
-          - academy
-          - academy map
-    npcs:
-      - id: 1
-        name: Goblin
-        description: A small, green creature with a large nose.
-        lookDescription: The goblin is small and green, with a large nose. It's wearing a tattered cloak.
-        keywords:
-          - g
-          - gob
-        isEnemy: true
-        maxHealth: 10
-        health: 10
-        damage: 1
-        respawnTime: 10000
-        items:
-          - id: 2
-            name: Sword of testing
-            description: A sword used for testing.
-            lookDescription: A sword used for testing.
-      - id: 2
-        name: instructor
-        description: A seasoned adventurer.
-        lookDescription: The instructor is a seasoned adventurer. He's wearing a suit of armor and carrying a sword.
-        isEnemy: false
-        maxHealth: 100
-        health: 100
-        damage: 10
-        respawnTime: 10000
-        items:
-          - id: 3
-            name: Sword of testing
-            description: A sword used for testing.
-            lookDescription: A sword used for testing.
 
   - id: area1_room2
     title: Academy Garden
@@ -70,6 +29,9 @@ rooms:
     description: |
       This is where new adventurers practice their skills. Training dummies are scattered around, and a seasoned
       instructor offers guidance. To the west, you see the garden.
+    npcs:
+      - '1' # Goblin
+      - '2' # Instructor
     exits:
       - direction: west
         roomId: area1_room2
@@ -81,6 +43,8 @@ rooms:
     description: |
       Rows of ancient books line the walls. Scholars and mages often frequent this place, seeking knowledge.
       A staircase leads up to a study room.
+    items:
+      - '1' # Academy Map
     exits:
       - direction: west
         roomId: area1_room3
@@ -122,3 +86,44 @@ rooms:
     exits:
       - direction: down
         roomId: area1_room4
+
+items:
+  - id: 1
+    name: Academy Map
+    description: A detailed map of Newhaven Academy.
+    lookDescription: The map shows the layout of the academy. It's a large place, with many rooms to explore.
+    keywords:
+      - map
+      - academy
+      - academy map
+
+  - id: 2
+    name: Sword of testing
+    description: A sword used for testing.
+    lookDescription: A sword used for testing.
+
+npcs:
+  - id: 1
+    name: Goblin
+    description: A small, green creature with a large nose.
+    lookDescription: The goblin is small and green, with a large nose. It's wearing a tattered cloak.
+    keywords:
+      - g
+      - gob
+    isEnemy: true
+    maxHealth: 10
+    health: 10
+    damage: 1
+    respawnTime: 10000
+    items:
+      - '2' # Sword of testing
+
+  - id: 2
+    name: Instructor
+    description: A seasoned adventurer.
+    lookDescription: The instructor is a seasoned adventurer. He's wearing a suit of armor and carrying a sword.
+    isEnemy: false
+    maxHealth: 100
+    health: 100
+    damage: 10
+    respawnTime: 10000
