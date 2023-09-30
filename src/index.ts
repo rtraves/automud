@@ -4,6 +4,7 @@ import { parseCommand, Command } from './command-parser';
 import { handleLogin } from './login';
 import { Session } from './session';
 import { Player } from './player';
+import { handleLookCommand } from './commands';
 
 const PORT = parseInt(process.env.PORT as string, 10) || 4444;
 const gameManager = GameManager.getInstance();
@@ -24,7 +25,7 @@ const server = net.createServer((socket) => {
       sessionOrPlayer = handleLogin(sessionOrPlayer, socket, input);
       if (sessionOrPlayer instanceof Player) {
         gameManager.players.set(sessionOrPlayer.name, sessionOrPlayer);
-        gameManager.handleLookCommand(sessionOrPlayer, gameManager.rooms.get(sessionOrPlayer.currentRoom)!);
+        handleLookCommand(sessionOrPlayer, gameManager.rooms.get(sessionOrPlayer.currentRoom)!);
       }
     } else if (sessionOrPlayer instanceof Player) {
       const command: Command = parseCommand(input);
