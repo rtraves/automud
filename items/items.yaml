@@ -1,0 +1,14 @@
+items:
+  - id: 1
+    name: Academy Map
+    description: A detailed map of Newhaven Academy.
+    lookDescription: The map shows the layout of the academy. It's a large place, with many rooms to explore.
+    keywords:
+      - map
+      - academy
+      - academy map
+
+  - id: 2
+    name: Sword of testing
+    description: A sword used for testing.
+    lookDescription: A sword used for testing.
