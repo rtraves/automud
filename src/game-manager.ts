@@ -44,7 +44,7 @@ export class GameManager {
     // set save tick
     setInterval(() => {
       this.saveTick();
-    }, 60000);
+    }, 120000);
   }
 
   stop() {}
@@ -114,6 +114,9 @@ export class GameManager {
         break;
       case CommandName.Colors:
         commands.handleColorsCommand(player);
+        break;
+      case CommandName.Goto:
+        commands.gotoCommand(this, player, command.args);
         break;
 
       default:

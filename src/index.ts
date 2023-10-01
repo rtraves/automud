@@ -12,7 +12,7 @@ const gameManager = GameManager.getInstance();
 gameManager.start();
 
 const server = net.createServer((socket) => {
-  console.log('A user connected');
+  console.log('A user connected: ' + socket.remoteAddress + ':' + socket.remotePort);
 
   let sessionOrPlayer: Session | Player = gameManager.initSession(socket);
 

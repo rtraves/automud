@@ -197,3 +197,14 @@ export function handleColorsCommand(player: Player) {
       player.socket.write(`${AC[color as keyof typeof AC]}${color}${AC.Reset}\r\n`);
     }
 }
+export function gotoCommand(gameManager: GameManager, player: Player, args: string[]) {
+    const room = gameManager.rooms.get(args[0]);
+    if (!room) {
+      player.socket.write(`Error: Room not found.\r\n`);
+      return;
+    }
+    broadcastToRoom(`${player.name} leaves the room.\r\n`, player, gameManager.players);
+    player.currentRoom = room.id;
+    broadcastToRoom(`${player.name} has arrived.\r\n`, player, gameManager.players);
+    handleLookCommand(player, room);
+}

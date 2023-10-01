@@ -16,7 +16,24 @@ export interface Command {
     Get = 'get',
     Kill = 'kill',
     Colors = 'colors',
+    Goto = 'goto', // Admin
   }
+  // Admin Commands
+  // reload (area)
+  // broadcast (to all)
+  // wizinvis (admin invis)
+  // restore (fully restores target player or all players)
+
+  // Builder Commands
+  // create (area, room, item, npc)
+  // edit (area, room, item, npc)
+  // delete (area, room, item, npc)
+  // link (rooms)
+  // unlink (rooms)
+  // add (item, npc) to (room)
+  // remove (item, npc) from (room)
+  // add, remove (item) to (npc)
+  // etc
   
   export function parseCommand(input: string): Command {
     const words = input.split(/\s+/);
@@ -65,6 +82,8 @@ export interface Command {
         return { name: CommandName.Drop, args };
       case 'colors':
         return { name: CommandName.Colors, args};
+      case 'goto': //eventually remove this or restict to admin only
+        return { name: CommandName.Goto, args};
       default:
         return { name: '', args: [] };
     }
