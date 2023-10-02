@@ -1,9 +1,10 @@
 import { Item } from './item';
+import { findItemById } from './item-manager';
 import { Room } from './room';
 import { Player } from './player';
 
 export interface NPCData {
-    id: string;
+    id: number;
     name: string;
     isEnemy: boolean;
     description: string;
@@ -12,12 +13,12 @@ export interface NPCData {
     maxHealth: number;
     health: number;
     damage: number;
-    items?: Item[];
+    itemIds?: number[];
     respawnTime: number;
 }
 
 export class NPC {
-    id: string;
+    id: number;
     name: string;
     isEnemy: boolean;
     description: string;
@@ -31,7 +32,7 @@ export class NPC {
     respawnTime: number;
     combatTarget: Player | NPC | null = null;
 
-    constructor(data: NPCData, room: Room) {
+    constructor(data: NPCData, itemMap: Map<number, Item>, room: Room) {
         this.id = data.id;
         this.name = data.name;
         this.isEnemy = data.isEnemy;
@@ -41,7 +42,7 @@ export class NPC {
         this.maxHealth = data.maxHealth;
         this.health = data.health;
         this.damage = data.damage;
-        this.items = data.items;
+        this.items = data.itemIds ? data.itemIds.map(itemId => findItemById(itemId, itemMap)).filter(item => item !== undefined) as Item[] : undefined;
         this.room = room;
         this.respawnTime = data.respawnTime;
     }
