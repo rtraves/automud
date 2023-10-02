@@ -4,7 +4,7 @@ import { Player } from './player';
 import { findExitByDirection } from './area-utils';
 import { broadcastToRoom } from './broadcast-utils';
 import { Room } from './room';
-import { AnsiColor, colorize } from './ansi-colors';
+import { AC, colorize } from './ansi-colors';
 
 
 export function handleMoveCommand(gameManager: GameManager, player: Player, command: Command) {
@@ -35,32 +35,21 @@ export function handleMoveCommand(gameManager: GameManager, player: Player, comm
   handleLookCommand(player, newRoom);
 }
 
-export function handleKillCommand(gameManager: GameManager ,player: Player, args: string[]) {
-    const currentRoom = gameManager.rooms.get(player.currentRoom);
-
-    if (!currentRoom) {
-      player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
-      return;
+export function handleKillCommand(gameManager: GameManager, player: Player, args: string[]) {
+    const targetName = args[0]; // assuming first argument is the name of the NPC or player
+    const room = gameManager.rooms.get(player.currentRoom);
+    const npc = room?.npcs.find(n => n.name.toLowerCase() === targetName.toLowerCase());
+    
+    if (npc && npc.isEnemy) {
+        player.combatTarget = npc;
+        player.socket.write(`You start attacking ${npc.name}!\r\n`);
+        broadcastToRoom(`${player.name} starts attacking ${npc.name}!\r\n`, player, gameManager.players);
+    } else if (npc && !npc.isEnemy) {
+        player.socket.write(`You can't attack ${npc.name}.\r\n`);
+    } else {
+        player.socket.write(`There is no ${targetName} here.\r\n`);
     }
-
-    const targetName = args.join(' ');
-    const target = currentRoom.npcs.find((npc) => 
-      npc.name.toLowerCase() === targetName.toLowerCase()
-      || npc.keywords?.includes(targetName.toLowerCase())
-    );
-
-    if (!target) {
-      player.socket.write(`There is no ${targetName} here.\r\n`);
-      return;
-    }
-
-    if (target.isEnemy) {
-      player.attack(target);
-    }
-    else {
-      player.socket.write(`You can't attack ${targetName}.\r\n`);
-    }
-  }
+}
 
 export function handleWhoCommand(gameManager: GameManager,player: Player) {
     const playerNames = Array.from(gameManager.players.values()).map((p) => p.name).join('\n');
@@ -69,7 +58,7 @@ export function handleWhoCommand(gameManager: GameManager,player: Player) {
       names.push(player.name);
     }
     const message = `Players online:\n----------------------------\n${playerNames}\r\n`;
-    player.socket.write(`${AnsiColor.Cyan}${message}${AnsiColor.Reset}`);
+    player.socket.write(`${AC.Cyan}${message}${AC.Reset}`);
   }
 
 export function handleInventoryCommand(player: Player) {
@@ -96,25 +85,25 @@ export function handleLookCommand(player: Player, room: Room | undefined, args?:
     // If no specific item is mentioned, show the room description
     if (!args || args.length === 0) {
         if (room) {
-            player.socket.write(colorize(`${room.title}\r\n`, AnsiColor.Cyan));
-            player.socket.write(colorize(`${room.description}\r\n`, AnsiColor.Green));
+            player.socket.write(colorize(`${room.title}\r\n`, AC.Cyan));
+            player.socket.write(colorize(`${room.description}\r\n`, AC.Green));
             if (room.npcs && room.npcs.length > 0) {
         for (const npc of room.npcs) {
           if (npc.isEnemy) {
-            player.socket.write(colorize(`${npc.name}\r\n`, AnsiColor.Red));
+            player.socket.write(colorize(`${npc.name}\r\n`, AC.Red));
           }
           else {
-            player.socket.write(colorize(`${npc.name}\r\n`, AnsiColor.Yellow));
+            player.socket.write(colorize(`${npc.name}\r\n`, AC.Yellow));
           }
         }
       }
       if (room.items && room.items.length > 0) {
                 for (const item of room.items) {
-                    player.socket.write(colorize(`${item.description}\r\n`, AnsiColor.Purple));
+                    player.socket.write(colorize(`${item.description}\r\n`, AC.Purple));
                 }
             }
             const exitStrings = room.exits.map((exit) => `${exit.direction}`);
-            player.socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AnsiColor.Yellow));
+            player.socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AC.Yellow));
         } else {
             player.socket.write('An error occurred. The current room does not exist.\r\n');
         }
@@ -193,7 +182,35 @@ export function handleGetCommand(gameManager: GameManager,player: Player, args: 
 
 export function handleColorsCommand(player: Player) {
     player.socket.write('Available colors:\r\n');
-    for (let color in AnsiColor) {
-      player.socket.write(`${AnsiColor[color as keyof typeof AnsiColor]}${color}${AnsiColor.Reset}\r\n`);
+    for (let color in AC) {
+      player.socket.write(`${AC[color as keyof typeof AC]}${color}${AC.Reset}\r\n`);
     }
+}
+export function gotoCommand(gameManager: GameManager, player: Player, args: string[]) {
+    const room = gameManager.rooms.get(args[0]);
+    if (!room) {
+      player.socket.write(`Error: Room not found.\r\n`);
+      return;
+    }
+    broadcastToRoom(`${player.name} leaves the room.\r\n`, player, gameManager.players);
+    player.currentRoom = room.id;
+    broadcastToRoom(`${player.name} has arrived.\r\n`, player, gameManager.players);
+    handleLookCommand(player, room);
+}
+export function handleScoreCommand(player: Player){
+    player.socket.write(`${AC.LightCyan}------------------------------------------------${AC.Reset}\r\n`);
+    player.socket.write(`You are ${AC.LightBlue}${player.name}${AC.Reset}.\r\n`);
+    player.socket.write(`You have ${AC.LightYellow}${player.gold}${AC.Reset} gold.\r\n`);
+    player.socket.write(`You have ${AC.LightPurple}${player.experience}${AC.Reset} experience.\r\n`);
+    player.socket.write(`${AC.LightCyan}------------------------------------------------${AC.Reset}\r\n`);
+}
+export function handleRestoreCommand(gameManager: GameManager, player: Player, args: string[]){
+    if (args.length === 0) {
+      player.socket.write('Restore what?\r\n');
+      return;
+    }
+    // set player hp to full
+    player.health = 100;
+    player.socket.write(`You have been restored to full health.\r\n`);
+    // Temporarily just setting to 100 hp, eventually will just set to max health
 }

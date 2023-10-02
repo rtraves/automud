@@ -1,0 +1,112 @@
+id: start
+name: Shattered Shores
+rooms:
+  - id: start_room1
+    title: Sunlit Shoreline
+    description: |
+      Your vision blurs as you stir from unconsciousness. Saltwater stings your nostrils, and the sound of crashing waves fills your ears.
+      As your eyes adjust, you see the remnants of a ship scattered around, half-buried in the sands. Survivors, both human and creature, 
+      are scattered along the coastline, struggling to make sense of the chaos. A pathway to the north seems to lead into a dense jungle.
+      To the west, a steep cliff rises, providing a vantage point.
+    exits:
+      - direction: north
+        roomId: start_room2
+      - direction: west
+        roomId:  room3
+
+  - id: start_room2
+    title: Jungle's Edge
+    description: |
+      Dense trees and thick foliage mark the entrance to the jungle. The calls of unseen birds and creatures echo throughout.
+      The path splits into two: one to the east, which seems to lead deeper into the jungle, and one to the west, where a faint trail
+      of smoke rises, hinting at civilization.
+    exits:
+      - direction: east
+        roomId: room4
+      - direction: west
+        roomId: start_room5
+
+  - id: start_room3
+    title: Cliff Overlook
+    description: |
+      You climb the cliff to find yourself on an overlook. The view is breathtaking. The vast ocean stretches out, with remnants of the
+      wrecked ship seen in the distance. To the north, you can just make out a town's outline, a beacon of hope for survivors.
+    exits:
+      - direction: north
+        roomId: start_room6
+
+  - id: start_room4
+    title: Deep Jungle
+    description: |
+      The jungle is thick and foreboding. Strange flora and fauna are abundant. The path becomes less clear,
+      but you can make out
+      a clearing to the north.
+    exits:
+      - direction: north
+        roomId: start_room7
+
+  - id: start_room5
+    title: Survivor's Camp
+    description: |
+      A makeshift camp has been set up here by survivors of the shipwreck. A small fire crackles in the center, around which survivors share stories and resources.
+      This may be a temporary respite, but for now, it's a haven.
+    exits:
+      - direction: east
+        roomId: start_room2
+
+  - id: start_room6
+    title: Newhaven Outskirts
+    description: |
+      As you approach, the structures of a small town come into view. Newhaven, as the sign indicates, seems to be a coastal town.
+      Fishermen and townsfolk go about their day, many casting sympathetic glances at the newcomers. A central square can be seen
+      to the east.
+    exits:
+      - direction: east
+        roomId: start_room8
+      - direction: south  
+        roomId: start_room3
+
+  - id: start_room7
+    title: Hidden Lagoon
+    description: |
+      The trees give way to reveal a serene lagoon. Freshwater flows from a waterfall to the west, creating a tranquil pool. The place feels untouched by the outside world, a secret oasis.
+    exits:
+      - direction: west
+        roomId: start_room4
+
+  - id: start_room8
+    title: Newhaven Gate
+    description: |
+      The town's entrance is marked by a large gate. A guard stands watch, eyeing you suspiciously. The town's main road leads north, while a path to the west leads to the outskirts.
+    exits:
+      - direction: west
+        roomId: start_room6
+      - direction: north
+        roomId: start_room9
+  - id: start_room9
+    title: Newhaven Road
+    description: |
+      The road is lined with small houses and shops. A few townsfolk go about their day, but the town seems to be in a state of disarray. A tavern to the west seems to be a popular spot.
+    exits:
+      - direction: south
+        roomId: start_room8
+      - direction: north
+        roomId: start_room10
+
+  - id: start_room10
+    title: Newhaven Square
+    description: |
+      The town's central square is bustling with activity. A fountain stands in the center, surrounded by benches. A tavern to the west seems to be a popular spot.
+    exits:
+      - direction: west
+        roomId: start_room11
+      - direction: south
+        roomId: start_room9
+
+  - id: start_room11
+    title: The Old Boar
+    description: |
+      The tavern is filled with patrons, many of whom are survivors of the shipwreck. A bard plays a merry tune in the corner, and the smell of ale fills the air.
+    exits:
+      - direction: east
+        roomId: start_room9

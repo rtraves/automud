@@ -4,6 +4,7 @@ import * as crypto from 'crypto';
 import * as path from 'path';
 import { Item } from './item';
 import { NPC } from './npc';
+import { AC, colorize } from './ansi-colors';
 
 const playersDataPath = path.join(__dirname, '..', 'data', 'players');
 
@@ -13,6 +14,12 @@ export interface PlayerData {
   currentRoom: string;
   inventory: PlayerInventory;
   password?: string;
+  isAdmin?: boolean;
+  health: number;
+  mana: number;
+  stamina: number;
+  experience: number;
+  gold: number;
 }
 
 export class PlayerInventory {
@@ -54,6 +61,14 @@ export class Player {
   disconnected: boolean;
   socket: net.Socket;
   password?: string;
+  isAdmin?: boolean;
+  health: number = 100;
+  mana: number = 100;   
+  stamina: number = 100;
+  damage: number = 10;
+  combatTarget: Player | NPC | null = null;
+  experience: number = 0;
+  gold: number = 0;
 
   constructor(id: string, currentRoom: string, socket: net.Socket) {
     this.id = id;
@@ -80,7 +95,7 @@ export class Player {
   }
 
   static createNewPlayer(name: string, password: string, socket: net.Socket): Player {
-    const player = new Player(name, 'area1_room1', socket); // Assuming default room for new players
+    const player = new Player(name, 'area1_room1', socket); // default room for new players
     player.name = name;
     player.password = player.hashPassword(password);
     player.save();
@@ -94,9 +109,15 @@ export class Player {
       currentRoom: this.currentRoom,
       inventory: this.inventory,
       password: this.password,
+      isAdmin: this.isAdmin,
+      health: this.health,
+      mana: this.mana,
+      stamina: this.stamina,
+      experience: this.experience,
+      gold: this.gold
     };
 
-    fs.writeFileSync(`./data/players/${this.name}.json`, JSON.stringify(playerData), 'utf-8');
+    fs.writeFileSync(`./data/players/${this.name}.json`, JSON.stringify(playerData, null, 4), 'utf-8');
   }
   load(): void {
     try {
@@ -106,6 +127,12 @@ export class Player {
       this.password = playerData.password;
       this.currentRoom = playerData.currentRoom;
       this.inventory = new PlayerInventory(playerData.inventory.items);
+      this.isAdmin = playerData.isAdmin;
+      this.health = playerData.health;
+      this.mana = playerData.mana;
+      this.stamina = playerData.stamina;
+      this.experience = playerData.experience;
+      this.gold = playerData.gold;
     } catch (err) {
       // TODO: Add this to a log file instead of console.error
       console.error(`Failed to load player data for ${this.name}. Error: ${err}`);
@@ -138,4 +165,10 @@ export class Player {
     hash.update(password);
     return hash.digest('hex');
   }
+  getPrompt(): string {
+    return `<${AC.LightGreen}HP:${this.health} ${AC.LightCyan}MP:${this.mana}${AC.LightYellow} ST:${this.stamina}${AC.Reset}> `;
+  }
+  takeDamage(amount: number) {
+    this.health -= amount;
+}
 }

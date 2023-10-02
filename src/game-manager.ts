@@ -2,22 +2,28 @@ import * as net from 'net';
 import * as path from 'path';
 import { Player } from './player';
 import { Room } from './room';
+import { Item } from './item';
+import { loadItems } from './item-manager';
 import { CommandName, Command } from './command-parser';
-import { AnsiColor, colorize } from './ansi-colors';
+import { AC, colorize } from './ansi-colors';
 import { loadArea, findExitByDirection } from './area-utils';
 import { broadcastToRoom, broadcastToAll } from './broadcast-utils';
 import { Session } from './session';
 import * as commands from './commands';
+import { NPC } from './npc';
+import { resolveCombat } from './combat';
 
 export class GameManager {
   private static instance: GameManager;
   players: Map<string, Player>;
   rooms: Map<string, Room>;
+  items: Map<number, Item>;
   sessions: Map<string, Session>;
 
   private constructor() {
     this.players = new Map();
     this.rooms = new Map();
+    this.items = new Map();
     this.sessions = new Map();
   }
 
@@ -29,29 +35,40 @@ export class GameManager {
   }
 
   start() {
+    const itemPath = path.join(__dirname, '..', 'items', 'items.yaml');
+    const itemData = loadItems(itemPath);
+
+    for (const [itemId, item] of itemData.entries()) {
+      this.items.set(itemId, item);
+    }
+
     const areaPath = path.join(__dirname, '..', 'areas', 'area1.yaml');
-    const areaRooms = loadArea(areaPath);
+    const areaRooms = loadArea(areaPath, this.items);
 
     for (const [roomId, room] of areaRooms.entries()) {
       this.rooms.set(roomId, room);
     }
 
-    // set game tick
+    // set combat tick
     setInterval(() => {
-      this.gameTick();
+      this.combatTick();
     }, 1000);
 
     // set save tick
     setInterval(() => {
       this.saveTick();
-    }, 60000);
+    }, 120000);
   }
 
   stop() {}
 
-  gameTick() {
-  
-  }
+  combatTick() {
+    this.players.forEach(player => {
+        if (player.combatTarget && player.combatTarget instanceof NPC) {
+            resolveCombat(player, player.combatTarget);
+        }
+    });
+}
 
   saveTick() {
     console.log('Saving players...');
@@ -89,12 +106,12 @@ export class GameManager {
         player.socket.end();
         break;
       case CommandName.Say:
-        const roomMessage = `${AnsiColor.LightCyan}${player.name} says: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
+        const roomMessage = `${AC.LightCyan}${player.name} says: ${command.args.join(' ')}${AC.Reset}\r\n`;
         player.socket.write(roomMessage);
         broadcastToRoom(roomMessage, player, this.players);
         break;
       case CommandName.Chat:
-        const globalMessage = `${AnsiColor.LightRed}[Global] ${player.name}:${AnsiColor.White} ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
+        const globalMessage = `${AC.LightRed}[Global] ${player.name}:${AC.White} ${command.args.join(' ')}${AC.Reset}\r\n`;
         broadcastToAll(globalMessage, this.players, player);
         break;
       case CommandName.Who:
@@ -115,9 +132,21 @@ export class GameManager {
       case CommandName.Colors:
         commands.handleColorsCommand(player);
         break;
+      case CommandName.Score:
+        commands.handleScoreCommand(player);
+        break;
+      case CommandName.Restore:
+        commands.handleRestoreCommand(this, player, command.args);
+        break;
+      case CommandName.Goto:
+        commands.gotoCommand(this, player, command.args);
+        break;
 
       default:
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
+    }
+    if (player.socket.writable) {
+      player.socket.write('\n' + player.getPrompt());
     }
   }
 };
