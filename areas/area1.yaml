@@ -28,9 +28,9 @@ rooms:
           - g
           - gob
         isEnemy: true
-        maxHealth: 10
-        health: 10
-        damage: 1
+        maxHealth: 50
+        health: 50
+        damage: 5
         respawnTime: 10000
         items:
           - id: 2

@@ -8,6 +8,8 @@ import { loadArea, findExitByDirection } from './area-utils';
 import { broadcastToRoom, broadcastToAll } from './broadcast-utils';
 import { Session } from './session';
 import * as commands from './commands';
+import { NPC } from './npc';
+import { resolveCombat } from './combat';
 
 export class GameManager {
   private static instance: GameManager;
@@ -36,9 +38,9 @@ export class GameManager {
       this.rooms.set(roomId, room);
     }
 
-    // set game tick
+    // set combat tick
     setInterval(() => {
-      this.gameTick();
+      this.combatTick();
     }, 1000);
 
     // set save tick
@@ -49,9 +51,13 @@ export class GameManager {
 
   stop() {}
 
-  gameTick() {
-  
-  }
+  combatTick() {
+    this.players.forEach(player => {
+        if (player.combatTarget && player.combatTarget instanceof NPC) {
+            resolveCombat(player, player.combatTarget);
+        }
+    });
+}
 
   saveTick() {
     console.log('Saving players...');

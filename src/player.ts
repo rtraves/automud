@@ -62,7 +62,9 @@ export class Player {
   isAdmin?: boolean;
   health: number = 100;
   mana: number = 100;   
-  stamina: number = 100; 
+  stamina: number = 100;
+  damage: number = 10;
+  combatTarget: Player | NPC | null = null;
 
   constructor(id: string, currentRoom: string, socket: net.Socket) {
     this.id = id;
@@ -157,5 +159,8 @@ export class Player {
   }
   getPrompt(): string {
     return `<${AC.LightGreen}HP:${this.health} ${AC.LightCyan}MP:${this.mana}${AC.LightYellow} ST:${this.stamina}${AC.Reset}> `;
+  }
+  takeDamage(amount: number) {
+    this.health -= amount;
 }
 }

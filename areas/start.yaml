@@ -13,20 +13,13 @@ rooms:
         roomId: start_room2
       - direction: west
         roomId:  room3
-    items:
-      - id: 4
-        name: Driftwood Stick
-        description: A sturdy piece of driftwood.
-        lookDescription: This piece of driftwood has been smoothed by the sea and is sturdy enough to be used as a weapon or tool.
-        keywords:
-          - driftwood
-          - stick
-          - wood
 
   - id: start_room2
     title: Jungle's Edge
     description: |
-      Dense trees and thick foliage mark the entrance to the jungle. The calls of unseen birds and creatures echo throughout. The path splits into two: one to the east, which seems to lead deeper into the jungle, and one to the west, where a faint trail of smoke rises, hinting at civilization.
+      Dense trees and thick foliage mark the entrance to the jungle. The calls of unseen birds and creatures echo throughout.
+      The path splits into two: one to the east, which seems to lead deeper into the jungle, and one to the west, where a faint trail
+      of smoke rises, hinting at civilization.
     exits:
       - direction: east
         roomId: room4
@@ -36,7 +29,8 @@ rooms:
   - id: start_room3
     title: Cliff Overlook
     description: |
-      You climb the cliff to find yourself on an overlook. The view is breathtaking. The vast ocean stretches out, with remnants of the wrecked ship seen in the distance. To the north, you can just make out a town's outline, a beacon of hope for survivors.
+      You climb the cliff to find yourself on an overlook. The view is breathtaking. The vast ocean stretches out, with remnants of the
+      wrecked ship seen in the distance. To the north, you can just make out a town's outline, a beacon of hope for survivors.
     exits:
       - direction: north
         roomId: start_room6
@@ -44,7 +38,9 @@ rooms:
   - id: start_room4
     title: Deep Jungle
     description: |
-      The jungle is thick and foreboding. Strange flora and fauna are abundant. The path becomes less clear, but you can make out a clearing to the north.
+      The jungle is thick and foreboding. Strange flora and fauna are abundant. The path becomes less clear,
+      but you can make out
+      a clearing to the north.
     exits:
       - direction: north
         roomId: start_room7
@@ -52,24 +48,23 @@ rooms:
   - id: start_room5
     title: Survivor's Camp
     description: |
-      A makeshift camp has been set up here by survivors of the shipwreck. A small fire crackles in the center, around which survivors share stories and resources. This may be a temporary respite, but for now, it's a haven.
-    items:
-      - id: 5
-        name: Salted Meat
-        description: A piece of preserved meat.
-        lookDescription: It's not the best meal, but it's sustenance.
-        keywords:
-          - meat
-          - salted
+      A makeshift camp has been set up here by survivors of the shipwreck. A small fire crackles in the center, around which survivors share stories and resources.
+      This may be a temporary respite, but for now, it's a haven.
+    exits:
+      - direction: east
+        roomId: start_room2
 
   - id: start_room6
     title: Newhaven Outskirts
     description: |
-      As you approach, the structures of a small town come into view. Newhaven, as the sign indicates, seems to be a coastal town. Fishermen and townsfolk go about their day, many casting sympathetic glances at the newcomers.
-      A central square can be seen to the east.
+      As you approach, the structures of a small town come into view. Newhaven, as the sign indicates, seems to be a coastal town.
+      Fishermen and townsfolk go about their day, many casting sympathetic glances at the newcomers. A central square can be seen
+      to the east.
     exits:
       - direction: east
         roomId: start_room8
+      - direction: south  
+        roomId: start_room3
 
   - id: start_room7
     title: Hidden Lagoon
@@ -97,6 +92,7 @@ rooms:
         roomId: start_room8
       - direction: north
         roomId: start_room10
+
   - id: start_room10
     title: Newhaven Square
     description: |
@@ -106,6 +102,7 @@ rooms:
         roomId: start_room11
       - direction: south
         roomId: start_room9
+
   - id: start_room11
     title: The Old Boar
     description: |

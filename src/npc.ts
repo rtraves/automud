@@ -1,5 +1,6 @@
 import { Item } from './item';
 import { Room } from './room';
+import { Player } from './player';
 
 export interface NPCData {
     id: string;
@@ -24,10 +25,11 @@ export class NPC {
     keywords?: string[];
     maxHealth: number;
     health: number;
-    damage: number;
+    damage: number = 5;
     items?: Item[];
     room: Room;
     respawnTime: number;
+    combatTarget: Player | NPC | null = null;
 
     constructor(data: NPCData, room: Room) {
         this.id = data.id;
@@ -46,7 +48,7 @@ export class NPC {
 
     takeDamage(damage: number): void {
         this.health -= damage;
-        if (this.health < 0) {
+        if (this.health <= 0) {
             this.health = 0;
             const index = this.room.npcs.indexOf(this);
             if (index > -1) {

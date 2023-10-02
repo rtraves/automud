@@ -35,32 +35,19 @@ export function handleMoveCommand(gameManager: GameManager, player: Player, comm
   handleLookCommand(player, newRoom);
 }
 
-export function handleKillCommand(gameManager: GameManager ,player: Player, args: string[]) {
-    const currentRoom = gameManager.rooms.get(player.currentRoom);
-
-    if (!currentRoom) {
-      player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
-      return;
+export function handleKillCommand(gameManager: GameManager, player: Player, args: string[]) {
+    const targetName = args[0]; // assuming first argument is the name of the NPC or player
+    const room = gameManager.rooms.get(player.currentRoom);
+    const npc = room?.npcs.find(n => n.name.toLowerCase() === targetName.toLowerCase());
+    
+    if (npc) {
+        player.combatTarget = npc;
+        player.socket.write(`You start attacking ${npc.name}!\r\n`);
+        broadcastToRoom(`${player.name} starts attacking ${npc.name}!\r\n`, player, gameManager.players);
+    } else {
+        player.socket.write(`${targetName} isn't here.\r\n`);
     }
-
-    const targetName = args.join(' ');
-    const target = currentRoom.npcs.find((npc) => 
-      npc.name.toLowerCase() === targetName.toLowerCase()
-      || npc.keywords?.includes(targetName.toLowerCase())
-    );
-
-    if (!target) {
-      player.socket.write(`There is no ${targetName} here.\r\n`);
-      return;
-    }
-
-    if (target.isEnemy) {
-      player.attack(target);
-    }
-    else {
-      player.socket.write(`You can't attack ${targetName}.\r\n`);
-    }
-  }
+}
 
 export function handleWhoCommand(gameManager: GameManager,player: Player) {
     const playerNames = Array.from(gameManager.players.values()).map((p) => p.name).join('\n');
