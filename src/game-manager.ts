@@ -3,6 +3,7 @@ import * as path from 'path';
 import { Player } from './player';
 import { Room } from './room';
 import { Item } from './item';
+import { loadItems } from './item-manager';
 import { CommandName, Command } from './command-parser';
 import { AnsiColor, colorize } from './ansi-colors';
 import { loadArea, findExitByDirection } from './area-utils';
@@ -13,7 +14,7 @@ export class GameManager {
   private static instance: GameManager;
   players: Map<string, Player>;
   rooms: Map<string, Room>;
-  items: Map<string, Item>;
+  items: Map<number, Item>;
   sessions: Map<string, Session>;
 
   private constructor() {
@@ -32,11 +33,14 @@ export class GameManager {
 
   start() {
     const itemPath = path.join(__dirname, '..', 'items', 'items.yaml');
-    // const itemData = loadItems(itemPath);
+    const itemData = loadItems(itemPath);
 
+    for (const [itemId, item] of itemData.entries()) {
+      this.items.set(itemId, item);
+    }
 
     const areaPath = path.join(__dirname, '..', 'areas', 'area1.yaml');
-    const areaRooms = loadArea(areaPath);
+    const areaRooms = loadArea(areaPath, this.items);
 
     for (const [roomId, room] of areaRooms.entries()) {
       this.rooms.set(roomId, room);

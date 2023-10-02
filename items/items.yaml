@@ -12,3 +12,6 @@ items:
     name: Sword of testing
     description: A sword used for testing.
     lookDescription: A sword used for testing.
+    keywords:
+      - sword
+      - testing sword
