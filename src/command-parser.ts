@@ -16,6 +16,8 @@ export interface Command {
     Get = 'get',
     Kill = 'kill',
     Colors = 'colors',
+    Score = 'score',
+    Restore = 'restore', // Admin
     Goto = 'goto', // Admin
   }
   // Admin Commands
@@ -82,7 +84,12 @@ export interface Command {
         return { name: CommandName.Drop, args };
       case 'colors':
         return { name: CommandName.Colors, args};
-      case 'goto': //eventually remove this or restict to admin only
+      case 'score':
+      case 'sc':
+        return { name: CommandName.Score, args};
+      case 'restore':
+        return { name: CommandName.Restore, args}; // Admin only
+      case 'goto': //eventually restict to admin only
         return { name: CommandName.Goto, args};
       default:
         return { name: '', args: [] };

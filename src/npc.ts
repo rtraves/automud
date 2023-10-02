@@ -15,6 +15,8 @@ export interface NPCData {
     damage: number;
     itemIds?: number[];
     respawnTime: number;
+    goldDrop?: [number, number];
+    expValue?: number;
 }
 
 export class NPC {
@@ -31,6 +33,8 @@ export class NPC {
     room: Room;
     respawnTime: number;
     combatTarget: Player | NPC | null = null;
+    goldDrop: [number, number];
+    expValue: number;
 
     constructor(data: NPCData, itemMap: Map<number, Item>, room: Room) {
         this.id = data.id;
@@ -45,6 +49,8 @@ export class NPC {
         this.items = data.itemIds ? data.itemIds.map(itemId => findItemById(itemId, itemMap)).filter(item => item !== undefined) as Item[] : undefined;
         this.room = room;
         this.respawnTime = data.respawnTime;
+        this.goldDrop = data.goldDrop ? data.goldDrop : [0, 0];
+        this.expValue = data.expValue ? data.expValue : 0;
     }
 
     takeDamage(damage: number): void {

@@ -97,14 +97,17 @@ npcs:
     lookDescription: The goblin is small and green, with a large nose. It's wearing a tattered cloak.
     keywords:
       - g
-      - gob
+      - blob
+      - goo
     isEnemy: true
-    maxHealth: 10
-    health: 10
-    damage: 1
+    maxHealth: 50
+    health: 50
+    damage: 3
     respawnTime: 10000
-    itemIds:
-      - 2 # Sword of testing
+    expValue: 10
+    goldDrop: [1, 10]
+    # itemIds:
+    #   - 2 # Sword of testing
 
   - id: 2
     name: Instructor

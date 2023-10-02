@@ -40,12 +40,14 @@ export function handleKillCommand(gameManager: GameManager, player: Player, args
     const room = gameManager.rooms.get(player.currentRoom);
     const npc = room?.npcs.find(n => n.name.toLowerCase() === targetName.toLowerCase());
     
-    if (npc) {
+    if (npc && npc.isEnemy) {
         player.combatTarget = npc;
         player.socket.write(`You start attacking ${npc.name}!\r\n`);
         broadcastToRoom(`${player.name} starts attacking ${npc.name}!\r\n`, player, gameManager.players);
+    } else if (npc && !npc.isEnemy) {
+        player.socket.write(`You can't attack ${npc.name}.\r\n`);
     } else {
-        player.socket.write(`${targetName} isn't here.\r\n`);
+        player.socket.write(`There is no ${targetName} here.\r\n`);
     }
 }
 
@@ -194,4 +196,21 @@ export function gotoCommand(gameManager: GameManager, player: Player, args: stri
     player.currentRoom = room.id;
     broadcastToRoom(`${player.name} has arrived.\r\n`, player, gameManager.players);
     handleLookCommand(player, room);
+}
+export function handleScoreCommand(player: Player){
+    player.socket.write(`${AC.LightCyan}------------------------------------------------${AC.Reset}\r\n`);
+    player.socket.write(`You are ${AC.LightBlue}${player.name}${AC.Reset}.\r\n`);
+    player.socket.write(`You have ${AC.LightYellow}${player.gold}${AC.Reset} gold.\r\n`);
+    player.socket.write(`You have ${AC.LightPurple}${player.experience}${AC.Reset} experience.\r\n`);
+    player.socket.write(`${AC.LightCyan}------------------------------------------------${AC.Reset}\r\n`);
+}
+export function handleRestoreCommand(gameManager: GameManager, player: Player, args: string[]){
+    if (args.length === 0) {
+      player.socket.write('Restore what?\r\n');
+      return;
+    }
+    // set player hp to full
+    player.health = 100;
+    player.socket.write(`You have been restored to full health.\r\n`);
+    // Temporarily just setting to 100 hp, eventually will just set to max health
 }

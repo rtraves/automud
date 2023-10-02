@@ -18,6 +18,8 @@ export interface PlayerData {
   health: number;
   mana: number;
   stamina: number;
+  experience: number;
+  gold: number;
 }
 
 export class PlayerInventory {
@@ -65,6 +67,8 @@ export class Player {
   stamina: number = 100;
   damage: number = 10;
   combatTarget: Player | NPC | null = null;
+  experience: number = 0;
+  gold: number = 0;
 
   constructor(id: string, currentRoom: string, socket: net.Socket) {
     this.id = id;
@@ -108,7 +112,9 @@ export class Player {
       isAdmin: this.isAdmin,
       health: this.health,
       mana: this.mana,
-      stamina: this.stamina
+      stamina: this.stamina,
+      experience: this.experience,
+      gold: this.gold
     };
 
     fs.writeFileSync(`./data/players/${this.name}.json`, JSON.stringify(playerData, null, 4), 'utf-8');
@@ -125,6 +131,8 @@ export class Player {
       this.health = playerData.health;
       this.mana = playerData.mana;
       this.stamina = playerData.stamina;
+      this.experience = playerData.experience;
+      this.gold = playerData.gold;
     } catch (err) {
       // TODO: Add this to a log file instead of console.error
       console.error(`Failed to load player data for ${this.name}. Error: ${err}`);

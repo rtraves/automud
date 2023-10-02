@@ -132,6 +132,12 @@ export class GameManager {
       case CommandName.Colors:
         commands.handleColorsCommand(player);
         break;
+      case CommandName.Score:
+        commands.handleScoreCommand(player);
+        break;
+      case CommandName.Restore:
+        commands.handleRestoreCommand(this, player, command.args);
+        break;
       case CommandName.Goto:
         commands.gotoCommand(this, player, command.args);
         break;
@@ -139,6 +145,8 @@ export class GameManager {
       default:
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
     }
-    player.socket.write('\n' + player.getPrompt());
+    if (player.socket.writable) {
+      player.socket.write('\n' + player.getPrompt());
+    }
   }
 };
