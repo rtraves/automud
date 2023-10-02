@@ -5,10 +5,11 @@ import { Room } from './room';
 import { Item } from './item';
 import { loadItems } from './item-manager';
 import { CommandName, Command } from './command-parser';
-import { AnsiColor, colorize } from './ansi-colors';
+import { AC, colorize } from './ansi-colors';
 import { loadArea, findExitByDirection } from './area-utils';
 import { broadcastToRoom, broadcastToAll } from './broadcast-utils';
 import { Session } from './session';
+import * as commands from './commands';
 
 export class GameManager {
   private static instance: GameManager;
@@ -54,16 +55,17 @@ export class GameManager {
     // set save tick
     setInterval(() => {
       this.saveTick();
-    }, 60000);
+    }, 120000);
   }
 
   stop() {}
 
   gameTick() {
-
+  
   }
 
   saveTick() {
+    console.log('Saving players...');
     this.players.forEach((player) => {
       player.save();
     });
@@ -71,7 +73,6 @@ export class GameManager {
 
   convertSessionToPlayer(session: Session, providedName: string, password: string): Player {
     const player = Player.createNewPlayer(providedName, password, session.socket);
-    this.players.set(session.sessionId, player);
     this.sessions.delete(session.sessionId);
     return player;
   }
@@ -84,14 +85,14 @@ export class GameManager {
   handleCommand(player: Player, command: Command) {
     switch (command.name) {
       case CommandName.Move:
-        this.handleMoveCommand(player, command);
+        commands.handleMoveCommand(this, player, command);
         break;
       case CommandName.Kill:
-        this.handleKillCommand(player, command.args);
+        commands.handleKillCommand(this, player, command.args);
         break;
       case CommandName.Look:
         const room = this.rooms.get(player.currentRoom);
-        this.handleLookCommand(player,room);
+        commands.handleLookCommand(player,room);
         break;
       case CommandName.Quit:
         player.save();
@@ -99,224 +100,39 @@ export class GameManager {
         player.socket.end();
         break;
       case CommandName.Say:
-        const roomMessage = `${AnsiColor.LightCyan}${player.name} says: ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
+        const roomMessage = `${AC.LightCyan}${player.name} says: ${command.args.join(' ')}${AC.Reset}\r\n`;
         player.socket.write(roomMessage);
         broadcastToRoom(roomMessage, player, this.players);
         break;
       case CommandName.Chat:
-        const globalMessage = `${AnsiColor.LightRed}[Global] ${player.name}:${AnsiColor.White} ${command.args.join(' ')}${AnsiColor.Reset}\r\n`;
+        const globalMessage = `${AC.LightRed}[Global] ${player.name}:${AC.White} ${command.args.join(' ')}${AC.Reset}\r\n`;
         broadcastToAll(globalMessage, this.players, player);
         break;
       case CommandName.Who:
-        this.handleWhoCommand(player);
+        commands.handleWhoCommand(this, player);
         break;
       case CommandName.Inventory:
-        this.handleInventoryCommand(player);
+        commands.handleInventoryCommand(player);
         break;
       case CommandName.Help:
-        this.handleHelpCommand(player);
+        commands.handleHelpCommand(player);
         break;
       case CommandName.Drop:
-        this.handleDropCommand(player, command.args);
+        commands.handleDropCommand(this, player, command.args);
         break;
       case CommandName.Get:
-        this.handleGetCommand(player, command.args);
+        commands.handleGetCommand(this, player, command.args);
         break;
       case CommandName.Colors:
-        this.handleColorsCommand(player);
+        commands.handleColorsCommand(player);
+        break;
+      case CommandName.Goto:
+        commands.gotoCommand(this, player, command.args);
         break;
 
       default:
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
     }
-  }
-  // TODO: move this to a separate file
-  handleMoveCommand(player: Player, command: Command) {
-    const currentRoom = this.rooms.get(player.currentRoom);
-    if (!currentRoom) {
-      player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
-      return;
-    }
-  
-    const exit = findExitByDirection(currentRoom, command.args[0]);
-  
-    if (!exit) {
-      player.socket.write(`You cannot go ${command.args[0]} from here.\r\n`);
-      return;
-    }
-  
-    const newRoom = this.rooms.get(exit.roomId);
-  
-    if (!newRoom) {
-      player.socket.write(`Error: Room ${exit.roomId} not found.\r\n`);
-      return;
-    }
-    broadcastToRoom(`${player.name} leaves ${command.args[0]}.\r\n`, player, this.players);
-    player.currentRoom = newRoom.id;
-    broadcastToRoom(`${player.name} has arrived.\r\n`, player, this.players);
-
-    // Modify handleLookCommand to accept a room ID so we can reuse it here
-    // Also I kinda hate the 'handle' prefix
-    this.handleLookCommand(player, newRoom);
-  }
-  // TODO: move this to a separate file
-  handleKillCommand(player: Player, args: string[]) {
-    const currentRoom = this.rooms.get(player.currentRoom);
-
-    if (!currentRoom) {
-      player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
-      return;
-    }
-
-    const targetName = args.join(' ');
-    const target = currentRoom.npcs.find((npc) => 
-      npc.name.toLowerCase() === targetName.toLowerCase()
-      || npc.keywords?.includes(targetName.toLowerCase())
-    );
-
-    if (!target) {
-      player.socket.write(`There is no ${targetName} here.\r\n`);
-      return;
-    }
-
-    if (target.isEnemy) {
-      player.attack(target);
-    }
-    else {
-      player.socket.write(`You can't attack ${targetName}.\r\n`);
-    }
-  }
-  // TODO: move this to a separate file
-  handleWhoCommand(player: Player) {
-    const playerNames = Array.from(this.players.values()).map((p) => p.name).join('\n');
-    const message = `Players online:\n----------------------------\n${playerNames}\r\n`;
-    player.socket.write(`${AnsiColor.Cyan}${message}${AnsiColor.Reset}`);
-  }
-  // TODO: move this to a separate file
-  handleInventoryCommand(player: Player) {
-    if (player.inventory.length === 0) {
-      player.socket.write('You are not carrying anything.\r\n');
-    } else {
-      player.socket.write('You are carrying:\r\n');
-      for (const item of player.inventory.items) {
-        // TODO: colorize items and probably do something like item.name
-        player.socket.write(`- ${item.name}\r\n`);
-      };
-    }
-  }
-  // TODO: move this to a separate file
-  handleHelpCommand(player: Player) {
-    // for loop thru command names
-    for (let command in CommandName) {
-      player.socket.write(`${CommandName[command as keyof typeof CommandName]}\r\n`);
-    }
-  }
-  // TODO: move this to a separate file
-  // Also bug for some reason isEnemy is not evaluating appropriatly
-  handleLookCommand(player: Player, room: Room | undefined, args?: string[]) {
-    // If no specific item is mentioned, show the room description
-    if (!args || args.length === 0) {
-        if (room) {
-            player.socket.write(colorize(`${room.title}\r\n`, AnsiColor.Cyan));
-            player.socket.write(colorize(`${room.description}\r\n`, AnsiColor.Green));
-            if (room.npcs && room.npcs.length > 0) {
-        for (const npc of room.npcs) {
-          if (npc.isEnemy) {
-            player.socket.write(colorize(`${npc.name}\r\n`, AnsiColor.Red));
-          }
-          else {
-            player.socket.write(colorize(`${npc.name}\r\n`, AnsiColor.Yellow));
-          }
-        }
-      }
-      if (room.items && room.items.length > 0) {
-                for (const item of room.items) {
-                    player.socket.write(colorize(`${item.description}\r\n`, AnsiColor.Purple));
-                }
-            }
-            const exitStrings = room.exits.map((exit) => `${exit.direction}`);
-            player.socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AnsiColor.Yellow));
-        } else {
-            player.socket.write('An error occurred. The current room does not exist.\r\n');
-        }
-    } else {
-        // If a specific item is mentioned, show the item's lookDescription
-        const itemName = args.join(' ').toLowerCase();
-        const itemInInventory = player.inventory.findItem(itemName);
-        const itemInRoom = room?.items.find(item => item.name.toLowerCase() === itemName);
-
-        if (itemInInventory) {
-            player.socket.write(itemInInventory.lookDescription + '\r\n');
-        } else if (itemInRoom) {
-            player.socket.write(itemInRoom.lookDescription + '\r\n');
-        } else {
-            player.socket.write(`You can't find ${itemName} to look at.\r\n`);
-        }
-    }
-}
-
-  // TODO: move this to a separate file
-  handleDropCommand(player: Player, args: string[]) {
-    if (args.length === 0) {
-      player.socket.write('Drop what?\r\n');
-      return;
-    }
-
-    const itemName = args.join(' ');
-    const item = player.inventory.findItem(itemName);
-
-    if (!item) {
-      player.socket.write(`You do not have ${itemName}.\r\n`);
-      return;
-    }
-
-    const currentRoom = this.rooms.get(player.currentRoom);
-
-    if (!currentRoom) {
-      player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
-      return;
-    }
-
-    player.inventory.removeItem(item);
-    currentRoom.addItem(item);
-    player.socket.write(`You drop ${item.name}.\r\n`);
-    broadcastToRoom(`${player.name} drops ${item.name}.\r\n`, player, this.players);
-  }
-  // TODO: move this to a separate file
-  handleGetCommand(player: Player, args: string[]) {
-    if (args.length === 0) {
-      player.socket.write('Get what?\r\n');
-      return;
-    }
-
-    const itemName = args.join(' ');
-    const currentRoom = this.rooms.get(player.currentRoom);
-
-    if (!currentRoom) {
-      player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
-      return;
-    }
-
-    const item = currentRoom.items.find((item) => 
-      item.name.toLowerCase() === itemName || 
-      item.keywords?.includes(itemName)
-    );
-
-    if (!item) {
-      player.socket.write(`There is no ${itemName} here.\r\n`);
-      return;
-    }
-
-    currentRoom.removeItem(item);
-    player.inventory.addItem(item);
-    player.socket.write(`You get ${item.description}.\r\n`);
-    broadcastToRoom(`${player.name} gets ${item.description}.\r\n`, player, this.players);
-  }
-
-  handleColorsCommand(player: Player) {
-    player.socket.write('Available colors:\r\n');
-    for (let color in AnsiColor) {
-      player.socket.write(`${AnsiColor[color as keyof typeof AnsiColor]}${color}${AnsiColor.Reset}\r\n`);
-    }
+    player.socket.write('\n' + player.getPrompt());
   }
 };
