@@ -14,13 +14,13 @@ export interface Exit {
     items: Item[];
     npcs: NPC[];
   
-    constructor(id: string, title: string, description: string, exits: Exit[], items: Item[], npcData: NPCData[]) {
+    constructor(id: string, title: string, description: string, exits: Exit[], items: Item[], npcData: NPCData[], itemMap: Map<number, Item>) {
       this.id = id;
       this.title = title;
       this.description = description;
       this.exits = exits;
       this.items = items || [];
-      this.npcs = npcData ? npcData.map((data) => new NPC(data, this)) : [];
+      this.npcs = npcData ? npcData.map((data) => new NPC(data, itemMap, this)) : [];
     }
   
     addExit(exit: Exit): void {
