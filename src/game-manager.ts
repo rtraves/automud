@@ -98,7 +98,7 @@ export class GameManager {
         break;
       case CommandName.Look:
         const room = this.rooms.get(player.currentRoom);
-        commands.handleLookCommand(player,room);
+        commands.handleLookCommand(player,room, command.args);
         break;
       case CommandName.Quit:
         player.save();
@@ -140,6 +140,9 @@ export class GameManager {
         break;
       case CommandName.Goto:
         commands.gotoCommand(this, player, command.args);
+        break;
+      case CommandName.Drink:
+        commands.handleDrinkCommand(this, player, command.args);
         break;
 
       default:

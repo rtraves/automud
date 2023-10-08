@@ -17,19 +17,20 @@ export interface Command {
     Kill = 'kill',
     Colors = 'colors',
     Score = 'score',
+    Drink = 'drink',
     Restore = 'restore', // Admin
     Goto = 'goto', // Admin
   }
   // Admin Commands
   // reload (area)
+  // shutdown (server)
   // broadcast (to all)
   // wizinvis (admin invis)
-  // restore (fully restores target player or all players)
 
   // Builder Commands
-  // create (area, room, item, npc)
-  // edit (area, room, item, npc)
-  // delete (area, room, item, npc)
+  // ocreate, oedit, odelete (object)
+  // rcreate, redit, rdelete (room)
+  // mcreate, medit, mdelete (mob, npc)
   // link (rooms)
   // unlink (rooms)
   // add (item, npc) to (room)
@@ -91,6 +92,8 @@ export interface Command {
         return { name: CommandName.Restore, args}; // Admin only
       case 'goto': //eventually restict to admin only
         return { name: CommandName.Goto, args};
+      case 'drink':
+        return { name: CommandName.Drink, args};
       default:
         return { name: '', args: [] };
     }

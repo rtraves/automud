@@ -5,7 +5,18 @@ import { findExitByDirection } from './area-utils';
 import { broadcastToRoom } from './broadcast-utils';
 import { Room } from './room';
 import { AC, colorize } from './ansi-colors';
+import { effectHandlers } from './effects';
+import { Item } from './item';
 
+
+// TODO: maybe split into something like
+//   commands/
+// │
+// ├── movement.ts
+// ├── combat.ts
+// ├── inventory.ts
+// ├── misc.ts
+// └── admin.ts
 
 export function handleMoveCommand(gameManager: GameManager, player: Player, command: Command) {
   const currentRoom = gameManager.rooms.get(player.currentRoom);
@@ -67,8 +78,8 @@ export function handleInventoryCommand(player: Player) {
     } else {
       player.socket.write('You are carrying:\r\n');
       for (const item of player.inventory.items) {
-        // TODO: colorize items and probably do something like item.name
-        player.socket.write(`- ${item.name}\r\n`);
+        // TODO: colorize items
+        player.socket.write(`- ${AC.LightGreen}${item.name}\r\n`);
       };
     }
   }
@@ -80,7 +91,6 @@ export function handleHelpCommand(player: Player) {
     }
   }
 
-  // Also bug for some reason isEnemy is not evaluating appropriatly
 export function handleLookCommand(player: Player, room: Room | undefined, args?: string[]) {
     // If no specific item is mentioned, show the room description
     if (!args || args.length === 0) {
@@ -213,4 +223,26 @@ export function handleRestoreCommand(gameManager: GameManager, player: Player, a
     player.health = 100;
     player.socket.write(`You have been restored to full health.\r\n`);
     // Temporarily just setting to 100 hp, eventually will just set to max health
+}
+export function handleDrinkCommand(gameManager: GameManager, player: Player, args: string[]) {
+  const currentRoom = gameManager.rooms.get(player.currentRoom);  
+  if (args.length === 0) {
+      player.socket.write('Drink what?\r\n');
+      return;
+  }
+  const itemName = args.join(' ').toLowerCase();
+  const itemInInventory = player.inventory.findItem(itemName);
+  console.log(itemInInventory?.useCommand);
+  if (!itemInInventory) {
+      player.socket.write(`You do not have ${itemName}.\r\n`);
+      return;
+  } else if (itemInInventory.useCommand === 'drink') {
+      const effectName = itemInInventory.effect?.type;
+      const effectAmount = itemInInventory.effect?.amount;
+      effectHandlers[effectName](player, effectAmount); // BUG: Increasing max health instead of current health
+
+
+      player.inventory.removeItem(itemInInventory);
+      currentRoom?.removeItem(itemInInventory);
+  }
 }

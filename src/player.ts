@@ -15,6 +15,7 @@ export interface PlayerData {
   inventory: PlayerInventory;
   password?: string;
   isAdmin?: boolean;
+  maxHealth: number;
   health: number;
   mana: number;
   stamina: number;
@@ -63,6 +64,7 @@ export class Player {
   password?: string;
   isAdmin?: boolean;
   health: number = 100;
+  maxHealth: number = 100;
   mana: number = 100;   
   stamina: number = 100;
   damage: number = 10;
@@ -111,6 +113,7 @@ export class Player {
       password: this.password,
       isAdmin: this.isAdmin,
       health: this.health,
+      maxHealth: this.maxHealth,
       mana: this.mana,
       stamina: this.stamina,
       experience: this.experience,
@@ -129,6 +132,7 @@ export class Player {
       this.inventory = new PlayerInventory(playerData.inventory.items);
       this.isAdmin = playerData.isAdmin;
       this.health = playerData.health;
+      this.maxHealth = playerData.maxHealth;
       this.mana = playerData.mana;
       this.stamina = playerData.stamina;
       this.experience = playerData.experience;
@@ -137,7 +141,7 @@ export class Player {
       // TODO: Add this to a log file instead of console.error
       console.error(`Failed to load player data for ${this.name}. Error: ${err}`);
     }
-}
+  }
 
   attemptLogin(name: string, password: string): boolean {
     try{
@@ -170,5 +174,5 @@ export class Player {
   }
   takeDamage(amount: number) {
     this.health -= amount;
-}
+  }
 }

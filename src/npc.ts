@@ -49,8 +49,8 @@ export class NPC {
         this.items = data.itemIds ? data.itemIds.map(itemId => findItemById(itemId, itemMap)).filter(item => item !== undefined) as Item[] : undefined;
         this.room = room;
         this.respawnTime = data.respawnTime;
-        this.goldDrop = data.goldDrop ? data.goldDrop : [0, 0];
-        this.expValue = data.expValue ? data.expValue : 0;
+        this.goldDrop = data.goldDrop || [0, 0];
+        this.expValue = data.expValue || 0;
     }
 
     takeDamage(damage: number): void {

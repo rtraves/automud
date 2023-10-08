@@ -2,7 +2,8 @@ items:
   - id: 1
     name: Academy Map
     description: A detailed map of Newhaven Academy.
-    lookDescription: The map shows the layout of the academy. It's a large place, with many rooms to explore.
+    lookDescription: |
+      The map is a detailed drawing of the academy grounds. It shows the main building, the dormitories, and the training grounds.
     keywords:
       - map
       - academy
@@ -15,3 +16,17 @@ items:
     keywords:
       - sword
       - testing sword
+
+  - id: 3
+    name: Small Health Potion
+    description: A small vial of red liquid.
+    lookDescription: A small vial of red liquid.
+    keywords:
+      - potion
+      - health potion
+      - small health potion
+    useCommand: drink
+    useDescription: You drink the potion. You feel a little better.
+    effect: 
+      type: heal
+      amount: 20
