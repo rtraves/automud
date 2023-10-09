@@ -18,6 +18,8 @@ export interface Command {
     Colors = 'colors',
     Score = 'score',
     Drink = 'drink',
+    List = 'list',
+    Buy = 'buy',
     Restore = 'restore', // Admin
     Goto = 'goto', // Admin
   }
@@ -94,6 +96,10 @@ export interface Command {
         return { name: CommandName.Goto, args};
       case 'drink':
         return { name: CommandName.Drink, args};
+      case 'list':
+        return { name: CommandName.List, args};
+      case 'buy':
+        return { name: CommandName.Buy, args};
       default:
         return { name: '', args: [] };
     }

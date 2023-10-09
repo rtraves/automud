@@ -144,7 +144,12 @@ export class GameManager {
       case CommandName.Drink:
         commands.handleDrinkCommand(this, player, command.args);
         break;
-
+      case CommandName.List:
+        commands.handleListCommand(this, player); // only 1 shopkeeper should be in room
+        break;
+      case CommandName.Buy:
+        commands.handleBuyCommand(this, player, command.args);
+        break;  
       default:
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
     }

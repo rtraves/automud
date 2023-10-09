@@ -232,17 +232,43 @@ export function handleDrinkCommand(gameManager: GameManager, player: Player, arg
   }
   const itemName = args.join(' ').toLowerCase();
   const itemInInventory = player.inventory.findItem(itemName);
-  console.log(itemInInventory?.useCommand);
   if (!itemInInventory) {
       player.socket.write(`You do not have ${itemName}.\r\n`);
       return;
   } else if (itemInInventory.useCommand === 'drink') {
       const effectName = itemInInventory.effect?.type;
       const effectAmount = itemInInventory.effect?.amount;
-      effectHandlers[effectName](player, effectAmount); // BUG: Increasing max health instead of current health
-
-
+      effectHandlers[effectName](player, effectAmount);
+      player.socket.write(`You restore ${effectAmount} health.\r\n`);
       player.inventory.removeItem(itemInInventory);
       currentRoom?.removeItem(itemInInventory);
+  }
+}
+export function handleListCommand(gameManager: GameManager, player: Player) {
+  const currentRoom = gameManager.rooms.get(player.currentRoom);
+  const shopsInRoom = currentRoom?.npcs.filter(npc => npc.isShop);
+  if (shopsInRoom) {
+      player.socket.write(shopsInRoom[0].listItems());
+  }
+}
+export function handleBuyCommand(gameManager: GameManager, player: Player, args: string[]) {
+  const currentRoom = gameManager.rooms.get(player.currentRoom);
+  if (args.length < 3) {
+      player.socket.write('Usage: buy [item number] from [npc name]\r\n');
+      return;
+  }
+  
+  const itemIndex = parseInt(args[0]) - 1;
+  args.shift(); // remove the item index from the args
+  args.shift(); // remove the "from" from the args
+  
+  const npcName = args.join(' ').toLowerCase();
+  const npcInRoom = currentRoom?.npcs.find(npc => npc.name.toLowerCase() === npcName);
+  
+  if (!npcInRoom) {
+      player.socket.write(`You do not see ${npcName} here.\r\n`);
+      return;
+  } else if (npcInRoom.isShop) {
+      player.socket.write(npcInRoom.sellItem(player, itemIndex));
   }
 }

@@ -112,11 +112,15 @@ npcs:
       - 3 # Small Health Potion
 
   - id: 2
-    name: Instructor
-    description: A seasoned adventurer.
-    lookDescription: The instructor is a seasoned adventurer. He's wearing a suit of armor and carrying a sword.
+    name: Shopkeeper
+    description: A shopkeeper stands here displaying his wares.
+    lookDescription: The shopkeeper looks like a typical merchant. He's wearing a brown cloak and a wide-brimmed hat.
     isEnemy: false
     maxHealth: 100
+    isShop: true
     health: 100
     damage: 10
     respawnTime: 10000
+    shopItems:
+      - itemId: 3 # Small Health Potion
+        cost: 10
