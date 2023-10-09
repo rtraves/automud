@@ -30,3 +30,27 @@ items:
     effect: 
       type: heal
       amount: 20
+  - id: 4
+    name: Simple Fishing Rod
+    description: A simple fishing rod.
+    lookDescription: A simple fishing rod.
+    keywords:
+      - rod
+      - fishing rod
+    value: 30
+
+  - id: 5
+    name: Silverfish
+    description: A commonly found fish.
+    keywords:
+      - fish
+      - common fish
+    value: 2
+  - id: 6
+    name: Rare Golden Fish
+    description: A rare fish that shines like gold.
+    keywords:
+      - fish
+      - rare
+      - golden
+    value: 10

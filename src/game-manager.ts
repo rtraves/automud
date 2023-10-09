@@ -149,7 +149,13 @@ export class GameManager {
         break;
       case CommandName.Buy:
         commands.handleBuyCommand(this, player, command.args);
-        break;  
+        break;
+      case CommandName.Sell:
+        commands.handleSellCommand(this, player, command.args);
+        break;
+      case CommandName.Fish:
+        commands.handleFishCommand(this, player);
+        break;
       default:
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
     }

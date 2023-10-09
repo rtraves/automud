@@ -20,6 +20,8 @@ export interface Command {
     Drink = 'drink',
     List = 'list',
     Buy = 'buy',
+    Sell = 'sell',
+    Fish = 'fish',
     Restore = 'restore', // Admin
     Goto = 'goto', // Admin
   }
@@ -100,6 +102,10 @@ export interface Command {
         return { name: CommandName.List, args};
       case 'buy':
         return { name: CommandName.Buy, args};
+      case 'sell':
+        return { name: CommandName.Sell, args};
+      case 'fish':
+        return { name: CommandName.Fish, args};
       default:
         return { name: '', args: [] };
     }

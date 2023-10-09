@@ -26,13 +26,12 @@ rooms:
         roomId: area1_room7
 
   - id: area1_room3
-    title: Training Grounds
+    title: Training Arena
     description: |
-      This is where new adventurers practice their skills. Training dummies are scattered around, and a seasoned
-      instructor offers guidance. To the west, you see the garden.
+      You have entered a small arena with a small cart off to the side with items to purchase. To the west, you see the garden.
     npcIds: [
       1, # Goblin
-      2 # Instructor
+      2 # Shopkeeper
     ]
     exits:
       - direction: west
@@ -46,8 +45,8 @@ rooms:
       Rows of ancient books line the walls. Scholars and mages often frequent this place, seeking knowledge.
       A staircase leads up to a study room.
     itemIds: [
-      1, # Academy Map
-      3 # Small Health Potion
+        1, # Academy Map
+        3 # Small Health Potion
       ]
     exits:
       - direction: west
@@ -76,8 +75,7 @@ rooms:
   - id: area1_room7
     title: Pond's Edge
     description: |
-      The calm waters of the pond reflect the sky. It's a peaceful spot, perfect for reflection. A small boat
-      is tied to a post, seemingly inviting you to explore further.
+      The calm waters of the pond reflect the sky. It's a peaceful spot, perfect for reflection. You spot small fish in the clear pool.
     exits:
       - direction: south
         roomId: area1_room2
@@ -105,8 +103,8 @@ npcs:
     maxHealth: 50
     health: 50
     damage: 3
-    respawnTime: 10000
-    expValue: 10
+    respawnTime: 1000
+    expValue: 50
     goldDrop: [1, 10]
     itemIds:
       - 3 # Small Health Potion
@@ -124,3 +122,5 @@ npcs:
     shopItems:
       - itemId: 3 # Small Health Potion
         cost: 10
+      - itemId: 4 # Simple Fishing Rod
+        cost: 50

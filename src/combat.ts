@@ -27,9 +27,10 @@ export function resolveCombat(attacker: Player, defender: NPC) {
         attacker.combatTarget = null;
         const goldDropped = Math.floor(Math.random() * (defender.goldDrop[1] - defender.goldDrop[0] + 1)) + defender.goldDrop[0];
         attacker.gold += goldDropped;
-        attacker.experience += defender.expValue;
+        attacker.earnExperience(defender.expValue);
         attacker.socket.write(`You killed ${defender.name}!\r\n`);
         attacker.socket.write(`${AC.Cyan}You gained ${AC.LightPurple}${defender.expValue}${AC.Cyan} experience and ${AC.LightYellow}${goldDropped}${AC.Cyan} gold.${AC.Reset}\r\n`);
+        attacker.socket.write('\n' + attacker.getPrompt());
         // Handle NPC death, e.g., drop items, respawn
     }
 

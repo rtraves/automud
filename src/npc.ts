@@ -125,4 +125,15 @@ export class NPC {
         player.inventory.addItem(item);  // Assumes player has an 'inventory' property.
         return `You bought ${item.name} for ${item.cost} gold!`;
     }
+    buyItem(player: Player, item: Item): string {
+        if (!this.isShop || !this.shopItems) {
+            return `${this.name} is not a shopkeeper.`;
+        }
+        if (item.value) {
+            player.gold += item.value;  // Player's gold is increased
+            player.inventory.removeItem(item);  // Removes the item from the player's inventory
+            return `You sold ${item.name} for ${item.value} gold!`;
+        }
+        return `You can't sell ${item.name}!`;
+    }
 }

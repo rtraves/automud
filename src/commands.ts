@@ -7,6 +7,7 @@ import { Room } from './room';
 import { AC, colorize } from './ansi-colors';
 import { effectHandlers } from './effects';
 import { Item } from './item';
+import { findItemById } from './item-manager';
 
 
 // TODO: maybe split into something like
@@ -212,6 +213,12 @@ export function handleScoreCommand(player: Player){
     player.socket.write(`You are ${AC.LightBlue}${player.name}${AC.Reset}.\r\n`);
     player.socket.write(`You have ${AC.LightYellow}${player.gold}${AC.Reset} gold.\r\n`);
     player.socket.write(`You have ${AC.LightPurple}${player.experience}${AC.Reset} experience.\r\n`);
+    player.socket.write(`You are level ${AC.LightGreen}${player.level}${AC.Reset}.\r\n`);
+    player.socket.write(`${AC.BrightWhite}Attributes:${AC.Reset}\r\n`);
+    player.socket.write(`- Strength: ${AC.LightRed}${player.attributes.strength}${AC.Reset}\r\n`);
+    player.socket.write(`- Dexterity: ${AC.Green}${player.attributes.dexterity}${AC.Reset}\r\n`);
+    player.socket.write(`- Intelligence: ${AC.LightBlue}${player.attributes.intelligence}${AC.Reset}\r\n`);
+    player.displayExperienceToNextLevel();
     player.socket.write(`${AC.LightCyan}------------------------------------------------${AC.Reset}\r\n`);
 }
 export function handleRestoreCommand(gameManager: GameManager, player: Player, args: string[]){
@@ -271,4 +278,67 @@ export function handleBuyCommand(gameManager: GameManager, player: Player, args:
   } else if (npcInRoom.isShop) {
       player.socket.write(npcInRoom.sellItem(player, itemIndex));
   }
+}
+export function handleSellCommand(gameManager: GameManager, player: Player, args: string[]) {
+  const currentRoom = gameManager.rooms.get(player.currentRoom);
+  if (args.length < 3) {
+      player.socket.write('Usage: sell [item name] to [npc name]\r\n');
+      return;
+  }
+
+  // Split arguments based on the "to" keyword
+  const toIndex = args.indexOf('to');
+  if (toIndex === -1 || toIndex === 0 || toIndex === args.length - 1) {
+      player.socket.write('Usage: sell [item name] to [npc name]\r\n');
+      return;
+  }
+
+  const itemName = args.slice(0, toIndex).join(' ').toLowerCase();
+  const npcName = args.slice(toIndex + 1).join(' ').toLowerCase();
+
+  const item = player.inventory.findItem(itemName);
+  const npcInRoom = currentRoom?.npcs.find(npc => npc.name.toLowerCase() === npcName);
+
+  if (!npcInRoom) {
+      player.socket.write(`You do not see ${npcName} here.\r\n`);
+      return;
+  } else if (npcInRoom.isShop && item) {
+      player.socket.write(npcInRoom.buyItem(player, item));
+  } else {
+      player.socket.write(`${npcInRoom.name} is not interested in buying items.\r\n`);
+  }
+}
+export function handleFishCommand(gameManager: GameManager, player: Player) {
+  const currentRoom = gameManager.rooms.get(player.currentRoom);
+  const items = gameManager.items;
+  const silverfish = items.get(5);
+  const goldfish = items.get(6);
+
+  if (!silverfish || !goldfish) {
+    console.error('Silverfish or Goldfish is not defined!');
+    player.socket.write("There seems to be an error, please try again later.\r\n");
+    return;
+  }
+  // TODO: should handle fishing room better (not straight id)
+  if (currentRoom?.id !== 'area1_room7') {
+      player.socket.write("You can't fish here!\r\n");
+      return;
+  }
+  if (!player.inventory.findItem('rod')) { // Check if player has the fishing rod
+      player.socket.write("You need a fishing rod to fish!\r\n");
+      return;
+  }
+  player.socket.write(`${AC.LightBlue}You cast your line into the ${AC.Blue}water${AC.Reset}...\r\n`);
+  setTimeout(() => {
+    const chance = Math.random();
+    if (chance < 0.3) {
+        player.socket.write("You didn't catch anything this time.\r\n");
+    } else if (chance < 0.4) {  // 10% chance for goldfish
+        player.inventory.addItem(goldfish);
+        player.socket.write(`You caught a ${AC.Yellow}Goldfish!${AC.Reset}\r\n`);
+    } else {  // 60% chance for silverfish
+        player.inventory.addItem(silverfish);
+        player.socket.write(`You caught a ${AC.DarkGray}Silverfish${AC.Reset}!\r\n`);
+    }
+  }, 3000);  // 3000 milliseconds = 3 seconds
 }
