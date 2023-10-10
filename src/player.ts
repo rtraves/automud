@@ -15,11 +15,24 @@ export interface PlayerData {
   inventory: PlayerInventory;
   password?: string;
   isAdmin?: boolean;
+  maxHealth: number;
   health: number;
   mana: number;
   stamina: number;
   experience: number;
   gold: number;
+  level: number;
+  attributes: Attributes;
+}
+interface Attribute {
+  name: string;
+  value: number;
+}
+type Attributes = {
+  strength: number;
+  dexterity: number;
+  intelligence: number;
+  // ... other attributes
 }
 
 export class PlayerInventory {
@@ -63,12 +76,19 @@ export class Player {
   password?: string;
   isAdmin?: boolean;
   health: number = 100;
+  maxHealth: number = 100;
   mana: number = 100;   
   stamina: number = 100;
-  damage: number = 10;
+  damage: number = 5;
   combatTarget: Player | NPC | null = null;
   experience: number = 0;
   gold: number = 0;
+  level: number = 1;
+  attributes: Attributes = {
+    strength: 5,
+    dexterity: 5,
+    intelligence: 5
+  };
 
   constructor(id: string, currentRoom: string, socket: net.Socket) {
     this.id = id;
@@ -80,7 +100,11 @@ export class Player {
     this.save = this.save.bind(this);
     
   }
+  private static readonly BASE_EXP: number = 100;
 
+  static expForLevel(level: number): number {
+    return Player.BASE_EXP * (level * (level + 1) * (2*level + 1) / 6);
+  }
   attack(target: NPC): void {
     const damage = Math.floor(Math.random() * 10);
     target.takeDamage(damage);
@@ -111,10 +135,13 @@ export class Player {
       password: this.password,
       isAdmin: this.isAdmin,
       health: this.health,
+      maxHealth: this.maxHealth,
       mana: this.mana,
       stamina: this.stamina,
       experience: this.experience,
-      gold: this.gold
+      gold: this.gold,
+      level: this.level,
+      attributes: this.attributes
     };
 
     fs.writeFileSync(`./data/players/${this.name}.json`, JSON.stringify(playerData, null, 4), 'utf-8');
@@ -129,15 +156,18 @@ export class Player {
       this.inventory = new PlayerInventory(playerData.inventory.items);
       this.isAdmin = playerData.isAdmin;
       this.health = playerData.health;
+      this.maxHealth = playerData.maxHealth;
       this.mana = playerData.mana;
       this.stamina = playerData.stamina;
       this.experience = playerData.experience;
       this.gold = playerData.gold;
+      this.level = playerData.level;
+      this.attributes = playerData.attributes;
     } catch (err) {
       // TODO: Add this to a log file instead of console.error
       console.error(`Failed to load player data for ${this.name}. Error: ${err}`);
     }
-}
+  }
 
   attemptLogin(name: string, password: string): boolean {
     try{
@@ -170,5 +200,38 @@ export class Player {
   }
   takeDamage(amount: number) {
     this.health -= amount;
+  }
+  earnExperience(amount: number): void {
+    this.experience += amount;
+    this.updateLevel();
 }
+  updateLevel(): void {
+    let level = 1;
+    while (Player.expForLevel(level) <= this.experience && level < 100) {
+        level++;
+    }
+
+    if (level !== this.level) {
+        this.level = level;
+        this.socket.write(`${AC.LightWhite}Congratulations! ${AC.White}You have reached level ${AC.Cyan}${level}.${AC.Reset}\r\n`);
+        this.increaseAttribute('strength', 1);
+        this.increaseAttribute('dexterity', 1);
+        this.increaseAttribute('intelligence', 1);
+    }
+  }
+
+  increaseAttribute(attributeName: keyof Attributes, amount: number): void {
+    this.attributes[attributeName] += amount;
+  }
+  experienceToNextLevel(): number {
+    const nextLevelExp = Player.expForLevel(this.level + 1);
+    const currentExp = this.experience;
+    return nextLevelExp - currentExp;
+  }
+
+  displayExperienceToNextLevel(): void {
+    const expNeeded = this.experienceToNextLevel();
+    this.socket.write(`Experience needed for next level: ${expNeeded}\r\n`);
+  }
+  
 }

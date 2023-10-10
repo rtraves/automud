@@ -8,13 +8,14 @@ export enum AC {
   Purple = '\x1b[35m',
   Cyan = '\x1b[36m',
   White = '\x1b[37m',
-  BrightWhite = '\x1b[1m\x1b[37m',
+  LightWhite = '\x1b[1m\x1b[37m',
   LightBlue = '\x1b[94m',
   LightGreen = '\x1b[92m',
   LightCyan = '\x1b[96m',
   LightRed = '\x1b[91m',
   LightPurple = '\x1b[95m',
   LightYellow = '\x1b[93m',
+  DarkGray = '\x1b[90m',
 }
 const colorCodes: { [code: string]: string } = {
     "&r": "\x1b[31m", // Red

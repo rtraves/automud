@@ -98,7 +98,7 @@ export class GameManager {
         break;
       case CommandName.Look:
         const room = this.rooms.get(player.currentRoom);
-        commands.handleLookCommand(player,room);
+        commands.handleLookCommand(player,room, command.args);
         break;
       case CommandName.Quit:
         player.save();
@@ -141,7 +141,21 @@ export class GameManager {
       case CommandName.Goto:
         commands.gotoCommand(this, player, command.args);
         break;
-
+      case CommandName.Drink:
+        commands.handleDrinkCommand(this, player, command.args);
+        break;
+      case CommandName.List:
+        commands.handleListCommand(this, player); // only 1 shopkeeper should be in room
+        break;
+      case CommandName.Buy:
+        commands.handleBuyCommand(this, player, command.args);
+        break;
+      case CommandName.Sell:
+        commands.handleSellCommand(this, player, command.args);
+        break;
+      case CommandName.Fish:
+        commands.handleFishCommand(this, player);
+        break;
       default:
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
     }

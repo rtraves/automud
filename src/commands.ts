@@ -5,7 +5,19 @@ import { findExitByDirection } from './area-utils';
 import { broadcastToRoom } from './broadcast-utils';
 import { Room } from './room';
 import { AC, colorize } from './ansi-colors';
+import { effectHandlers } from './effects';
+import { Item } from './item';
+import { findItemById } from './item-manager';
 
+
+// TODO: maybe split into something like
+//   commands/
+// │
+// ├── movement.ts
+// ├── combat.ts
+// ├── inventory.ts
+// ├── misc.ts
+// └── admin.ts
 
 export function handleMoveCommand(gameManager: GameManager, player: Player, command: Command) {
   const currentRoom = gameManager.rooms.get(player.currentRoom);
@@ -51,7 +63,7 @@ export function handleKillCommand(gameManager: GameManager, player: Player, args
     }
 }
 
-export function handleWhoCommand(gameManager: GameManager,player: Player) {
+export function handleWhoCommand(gameManager: GameManager, player: Player) {
     const playerNames = Array.from(gameManager.players.values()).map((p) => p.name).join('\n');
     const names = [];
     for (const player of gameManager.players.values()) {
@@ -67,8 +79,8 @@ export function handleInventoryCommand(player: Player) {
     } else {
       player.socket.write('You are carrying:\r\n');
       for (const item of player.inventory.items) {
-        // TODO: colorize items and probably do something like item.name
-        player.socket.write(`- ${item.name}\r\n`);
+        // TODO: colorize items
+        player.socket.write(`- ${AC.LightGreen}${item.name}\r\n`);
       };
     }
   }
@@ -80,7 +92,6 @@ export function handleHelpCommand(player: Player) {
     }
   }
 
-  // Also bug for some reason isEnemy is not evaluating appropriatly
 export function handleLookCommand(player: Player, room: Room | undefined, args?: string[]) {
     // If no specific item is mentioned, show the room description
     if (!args || args.length === 0) {
@@ -202,6 +213,12 @@ export function handleScoreCommand(player: Player){
     player.socket.write(`You are ${AC.LightBlue}${player.name}${AC.Reset}.\r\n`);
     player.socket.write(`You have ${AC.LightYellow}${player.gold}${AC.Reset} gold.\r\n`);
     player.socket.write(`You have ${AC.LightPurple}${player.experience}${AC.Reset} experience.\r\n`);
+    player.socket.write(`You are level ${AC.LightGreen}${player.level}${AC.Reset}.\r\n`);
+    player.socket.write(`${AC.LightWhite}Attributes:${AC.Reset}\r\n`);
+    player.socket.write(`- Strength: ${AC.LightRed}${player.attributes.strength}${AC.Reset}\r\n`);
+    player.socket.write(`- Dexterity: ${AC.Green}${player.attributes.dexterity}${AC.Reset}\r\n`);
+    player.socket.write(`- Intelligence: ${AC.LightBlue}${player.attributes.intelligence}${AC.Reset}\r\n`);
+    player.displayExperienceToNextLevel();
     player.socket.write(`${AC.LightCyan}------------------------------------------------${AC.Reset}\r\n`);
 }
 export function handleRestoreCommand(gameManager: GameManager, player: Player, args: string[]){
@@ -213,4 +230,115 @@ export function handleRestoreCommand(gameManager: GameManager, player: Player, a
     player.health = 100;
     player.socket.write(`You have been restored to full health.\r\n`);
     // Temporarily just setting to 100 hp, eventually will just set to max health
+}
+export function handleDrinkCommand(gameManager: GameManager, player: Player, args: string[]) {
+  const currentRoom = gameManager.rooms.get(player.currentRoom);  
+  if (args.length === 0) {
+      player.socket.write('Drink what?\r\n');
+      return;
+  }
+  const itemName = args.join(' ').toLowerCase();
+  const itemInInventory = player.inventory.findItem(itemName);
+  if (!itemInInventory) {
+      player.socket.write(`You do not have ${itemName}.\r\n`);
+      return;
+  } else if (itemInInventory.useCommand === 'drink') {
+      const effectName = itemInInventory.effect?.type;
+      const effectAmount = itemInInventory.effect?.amount;
+      effectHandlers[effectName](player, effectAmount);
+      player.socket.write(`You restore ${effectAmount} health.\r\n`);
+      player.inventory.removeItem(itemInInventory);
+      currentRoom?.removeItem(itemInInventory);
+  }
+}
+export function handleListCommand(gameManager: GameManager, player: Player) {
+  const currentRoom = gameManager.rooms.get(player.currentRoom);
+  const shopsInRoom = currentRoom?.npcs.filter(npc => npc.isShop);
+  if (shopsInRoom) {
+      player.socket.write(shopsInRoom[0].listItems());
+  }
+}
+export function handleBuyCommand(gameManager: GameManager, player: Player, args: string[]) {
+  const currentRoom = gameManager.rooms.get(player.currentRoom);
+  if (args.length < 3) {
+      player.socket.write('Usage: buy [item number] from [npc name]\r\n');
+      return;
+  }
+  
+  const itemIndex = parseInt(args[0]) - 1;
+  args.shift(); // remove the item index from the args
+  args.shift(); // remove the "from" from the args
+  
+  const npcName = args.join(' ').toLowerCase();
+  const npcInRoom = currentRoom?.npcs.find(npc => npc.name.toLowerCase() === npcName);
+  
+  if (!npcInRoom) {
+      player.socket.write(`You do not see ${npcName} here.\r\n`);
+      return;
+  } else if (npcInRoom.isShop) {
+      player.socket.write(npcInRoom.sellItem(player, itemIndex));
+  }
+}
+export function handleSellCommand(gameManager: GameManager, player: Player, args: string[]) {
+  const currentRoom = gameManager.rooms.get(player.currentRoom);
+  if (args.length < 3) {
+      player.socket.write('Usage: sell [item name] to [npc name]\r\n');
+      return;
+  }
+
+  // Split arguments based on the "to" keyword
+  const toIndex = args.indexOf('to');
+  if (toIndex === -1 || toIndex === 0 || toIndex === args.length - 1) {
+      player.socket.write('Usage: sell [item name] to [npc name]\r\n');
+      return;
+  }
+
+  const itemName = args.slice(0, toIndex).join(' ').toLowerCase();
+  const npcName = args.slice(toIndex + 1).join(' ').toLowerCase();
+
+  const item = player.inventory.findItem(itemName);
+  const npcInRoom = currentRoom?.npcs.find(npc => npc.name.toLowerCase() === npcName);
+
+  if (!npcInRoom) {
+      player.socket.write(`You do not see ${npcName} here.\r\n`);
+      return;
+  } else if (npcInRoom.isShop && item) {
+      player.socket.write(npcInRoom.buyItem(player, item));
+  } else {
+      player.socket.write(`${npcInRoom.name} is not interested in buying items.\r\n`);
+  }
+}
+export function handleFishCommand(gameManager: GameManager, player: Player) {
+  const currentRoom = gameManager.rooms.get(player.currentRoom);
+  const items = gameManager.items;
+  const silverfish = items.get(5);
+  const goldfish = items.get(6);
+
+  if (!silverfish || !goldfish) {
+    console.error('Silverfish or Goldfish is not defined!');
+    player.socket.write("There seems to be an error, please try again later.\r\n");
+    return;
+  }
+  // TODO: should handle fishing room better (not straight id)
+  if (currentRoom?.id !== 'area1_room7') {
+      player.socket.write("You can't fish here!\r\n");
+      return;
+  }
+  if (!player.inventory.findItem('rod')) { // Check if player has the fishing rod
+      player.socket.write("You need a fishing rod to fish!\r\n");
+      return;
+  }
+  player.socket.write(`${AC.LightBlue}You cast your line into the ${AC.Blue}water${AC.Reset}...\r\n`);
+  setTimeout(() => {
+    const chance = Math.random();
+    if (chance < 0.3) {
+        player.socket.write("You didn't catch anything this time.\r\n");
+    } else if (chance < 0.4) {  // 10% chance for goldfish
+        player.inventory.addItem(goldfish);
+        player.socket.write(`You caught a ${AC.Yellow}Goldfish!${AC.Reset}\r\n`);
+    } else {  // 60% chance for silverfish
+        player.inventory.addItem(silverfish);
+        player.socket.write(`You caught a ${AC.DarkGray}Silverfish${AC.Reset}!\r\n`);
+    }
+  }, 3000);  // 3000 milliseconds = 3 seconds
 }

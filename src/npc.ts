@@ -2,6 +2,8 @@ import { Item } from './item';
 import { findItemById } from './item-manager';
 import { Room } from './room';
 import { Player } from './player';
+import { ShopItem } from './shop-item';
+import { AC } from './ansi-colors';
 
 export interface NPCData {
     id: number;
@@ -17,6 +19,8 @@ export interface NPCData {
     respawnTime: number;
     goldDrop?: [number, number];
     expValue?: number;
+    isShop?: boolean;
+    shopItems?: ShopItem[];
 }
 
 export class NPC {
@@ -35,6 +39,8 @@ export class NPC {
     combatTarget: Player | NPC | null = null;
     goldDrop: [number, number];
     expValue: number;
+    isShop: boolean;
+    shopItems?: ShopItem[];
 
     constructor(data: NPCData, itemMap: Map<number, Item>, room: Room) {
         this.id = data.id;
@@ -49,8 +55,22 @@ export class NPC {
         this.items = data.itemIds ? data.itemIds.map(itemId => findItemById(itemId, itemMap)).filter(item => item !== undefined) as Item[] : undefined;
         this.room = room;
         this.respawnTime = data.respawnTime;
-        this.goldDrop = data.goldDrop ? data.goldDrop : [0, 0];
-        this.expValue = data.expValue ? data.expValue : 0;
+        this.goldDrop = data.goldDrop || [0, 0];
+        this.expValue = data.expValue || 0;
+        this.isShop = data.isShop || false;
+        if (data.shopItems) {
+            this.shopItems = data.shopItems.map(shopItemData => {
+                const baseItem = itemMap.get(shopItemData.itemId);
+                if (!baseItem) {
+                    throw new Error(`Shop item ${shopItemData.itemId} not found in item map.`);
+                }
+                return {
+                    ...baseItem,
+                    itemId: shopItemData.itemId,
+                    cost: shopItemData.cost
+                };
+            });
+        }
     }
 
     takeDamage(damage: number): void {
@@ -74,5 +94,46 @@ export class NPC {
     respawn(): void {
         this.health = this.maxHealth;
         this.room.npcs.push(this);
+    }
+    listItems(): string {
+        if (!this.isShop || !this.shopItems) {
+            return `${this.name} is not a shopkeeper.`;
+        }
+
+        let output = 'Items for sale:\r\n';
+        this.shopItems.forEach((item, index) => {
+            output += `${index + 1}. ${AC.DarkGray} ${item.name}${AC.Reset} - ${AC.LightYellow}${item.cost}${AC.Reset} gold\r\n`;
+        });
+        return output;
+    }
+
+    sellItem(player: Player, itemIndex: number): string {
+        if (!this.isShop || !this.shopItems) {
+            return `${this.name} is not a shopkeeper.`;
+        }
+
+        if (itemIndex < 0 || itemIndex >= this.shopItems.length) {
+            return "I don't have that item for sale.";
+        }
+
+        const item = this.shopItems[itemIndex];
+        if (player.gold < item.cost) {
+            return "You don't have enough gold!";
+        }
+        player.gold -= item.cost;
+        // Add the item to the player's inventory
+        player.inventory.addItem(item);  // Assumes player has an 'inventory' property.
+        return `You bought ${item.name} for ${item.cost} gold!`;
+    }
+    buyItem(player: Player, item: Item): string {
+        if (!this.isShop || !this.shopItems) {
+            return `${this.name} is not a shopkeeper.`;
+        }
+        if (item.value) {
+            player.gold += item.value;  // Player's gold is increased
+            player.inventory.removeItem(item);  // Removes the item from the player's inventory
+            return `You sold ${item.name} for ${item.value} gold!`;
+        }
+        return `You can't sell ${item.name}!`;
     }
 }
