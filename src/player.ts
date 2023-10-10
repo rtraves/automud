@@ -79,7 +79,7 @@ export class Player {
   maxHealth: number = 100;
   mana: number = 100;   
   stamina: number = 100;
-  damage: number = 10;
+  damage: number = 5;
   combatTarget: Player | NPC | null = null;
   experience: number = 0;
   gold: number = 0;
@@ -213,12 +213,13 @@ export class Player {
 
     if (level !== this.level) {
         this.level = level;
-        this.socket.write(`${AC.BrightWhite}Congratulations! ${AC.White}You have reached level ${AC.Cyan}${level}.${AC.Reset}\r\n`);
+        this.socket.write(`${AC.LightWhite}Congratulations! ${AC.White}You have reached level ${AC.Cyan}${level}.${AC.Reset}\r\n`);
         this.increaseAttribute('strength', 1);
         this.increaseAttribute('dexterity', 1);
         this.increaseAttribute('intelligence', 1);
     }
   }
+
   increaseAttribute(attributeName: keyof Attributes, amount: number): void {
     this.attributes[attributeName] += amount;
   }
@@ -228,7 +229,7 @@ export class Player {
     return nextLevelExp - currentExp;
   }
 
-displayExperienceToNextLevel(): void {
+  displayExperienceToNextLevel(): void {
     const expNeeded = this.experienceToNextLevel();
     this.socket.write(`Experience needed for next level: ${expNeeded}\r\n`);
   }

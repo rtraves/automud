@@ -66,7 +66,7 @@ export class NPC {
                 }
                 return {
                     ...baseItem,
-                    itemId: shopItemData.itemId,  // <--- Use 'itemId' here
+                    itemId: shopItemData.itemId,
                     cost: shopItemData.cost
                 };
             });

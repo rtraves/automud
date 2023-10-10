@@ -63,7 +63,7 @@ export function handleKillCommand(gameManager: GameManager, player: Player, args
     }
 }
 
-export function handleWhoCommand(gameManager: GameManager,player: Player) {
+export function handleWhoCommand(gameManager: GameManager, player: Player) {
     const playerNames = Array.from(gameManager.players.values()).map((p) => p.name).join('\n');
     const names = [];
     for (const player of gameManager.players.values()) {
@@ -214,7 +214,7 @@ export function handleScoreCommand(player: Player){
     player.socket.write(`You have ${AC.LightYellow}${player.gold}${AC.Reset} gold.\r\n`);
     player.socket.write(`You have ${AC.LightPurple}${player.experience}${AC.Reset} experience.\r\n`);
     player.socket.write(`You are level ${AC.LightGreen}${player.level}${AC.Reset}.\r\n`);
-    player.socket.write(`${AC.BrightWhite}Attributes:${AC.Reset}\r\n`);
+    player.socket.write(`${AC.LightWhite}Attributes:${AC.Reset}\r\n`);
     player.socket.write(`- Strength: ${AC.LightRed}${player.attributes.strength}${AC.Reset}\r\n`);
     player.socket.write(`- Dexterity: ${AC.Green}${player.attributes.dexterity}${AC.Reset}\r\n`);
     player.socket.write(`- Intelligence: ${AC.LightBlue}${player.attributes.intelligence}${AC.Reset}\r\n`);
