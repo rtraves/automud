@@ -60,6 +60,36 @@ export class GameManager {
     }, 120000);
   }
 
+  reload() {
+    this.rooms.clear();
+    this.items.clear();
+
+    const itemPath = path.join(__dirname, '..', 'items', 'items.yaml');
+    const itemData = loadItems(itemPath);
+
+    for (const [itemId, item] of itemData.entries()) {
+      this.items.set(itemId, item);
+    }
+
+    const areaPath = path.join(__dirname, '..', 'areas', 'area1.yaml');
+    const areaRooms = loadArea(areaPath, this.items);
+
+    for (const [roomId, room] of areaRooms.entries()) {
+      this.rooms.set(roomId, room);
+    }
+
+    for (const player of this.players.values()) {
+      const updatedInventory: Item[] = [];
+      for (const item of player.inventory.items) {
+        const updatedItem = this.items.get(item.id);
+        if (updatedItem) {
+          updatedInventory.push(updatedItem);
+        }
+      }
+      player.inventory.items = updatedInventory;
+    }
+  }
+
   stop() {}
 
   combatTick() {
@@ -140,6 +170,9 @@ export class GameManager {
         break;
       case CommandName.Goto:
         commands.gotoCommand(this, player, command.args);
+        break;
+      case CommandName.Reload:
+        commands.handleReloadCommand(this, player, command.args);
         break;
       case CommandName.Drink:
         commands.handleDrinkCommand(this, player, command.args);

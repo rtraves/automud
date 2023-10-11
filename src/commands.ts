@@ -342,3 +342,14 @@ export function handleFishCommand(gameManager: GameManager, player: Player) {
     }
   }, 3000);  // 3000 milliseconds = 3 seconds
 }
+
+export function handleReloadCommand(gameManager: GameManager, player: Player, args: string[]) {
+  if (!player.isAdmin) {
+    player.socket.write('Unknown command.\r\n');
+    return;
+  }
+  else {
+    player.socket.write(`${player}: Reloading...\r\n`);
+    gameManager.reload();
+  }
+}

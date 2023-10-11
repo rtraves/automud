@@ -22,6 +22,7 @@ export interface Command {
     Buy = 'buy',
     Sell = 'sell',
     Fish = 'fish',
+    Reload = 'reload', // Admin
     Restore = 'restore', // Admin
     Goto = 'goto', // Admin
   }
@@ -96,6 +97,8 @@ export interface Command {
         return { name: CommandName.Restore, args}; // Admin only
       case 'goto': //eventually restict to admin only
         return { name: CommandName.Goto, args};
+      case 'reload':
+        return { name: CommandName.Reload, args}; // Admin only
       case 'drink':
         return { name: CommandName.Drink, args};
       case 'list':
