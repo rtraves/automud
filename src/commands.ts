@@ -43,8 +43,8 @@ export function handleMoveCommand(gameManager: GameManager, player: Player, comm
   broadcastToRoom(`${player.name} leaves ${command.args[0]}.\r\n`, player, gameManager.players);
   player.currentRoom = newRoom.id;
   broadcastToRoom(`${player.name} has arrived.\r\n`, player, gameManager.players);
-
   handleLookCommand(player, newRoom);
+  newRoom.onPlayerEnter(player);
 }
 
 export function handleKillCommand(gameManager: GameManager, player: Player, args: string[]) {
@@ -352,4 +352,8 @@ export function handleReloadCommand(gameManager: GameManager, player: Player, ar
     player.socket.write(`${player}: Reloading...\r\n`);
     gameManager.reload();
   }
+}
+
+export function handleQuestCommand() {
+  // TODO: implement
 }

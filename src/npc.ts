@@ -21,6 +21,10 @@ export interface NPCData {
     expValue?: number;
     isShop?: boolean;
     shopItems?: ShopItem[];
+    onEnterSpeak?: string;
+    isAggressive?: boolean;
+    questGiver?: boolean;
+    questId?: number;
 }
 
 export class NPC {
@@ -41,6 +45,10 @@ export class NPC {
     expValue: number;
     isShop: boolean;
     shopItems?: ShopItem[];
+    onEnterSpeak?: string;
+    isAggressive?: boolean;
+    questGiver?: boolean;
+    questId?: number;
 
     constructor(data: NPCData, itemMap: Map<number, Item>, room: Room) {
         this.id = data.id;
@@ -58,6 +66,10 @@ export class NPC {
         this.goldDrop = data.goldDrop || [0, 0];
         this.expValue = data.expValue || 0;
         this.isShop = data.isShop || false;
+        this.onEnterSpeak = data.onEnterSpeak;
+        this.isAggressive = data.isAggressive || false;
+        this.questGiver = data.questGiver || false;
+        this.questId = data.questId || 0;
         if (data.shopItems) {
             this.shopItems = data.shopItems.map(shopItemData => {
                 const baseItem = itemMap.get(shopItemData.itemId);
@@ -135,5 +147,19 @@ export class NPC {
             return `You sold ${item.name} for ${item.value} gold!`;
         }
         return `You can't sell ${item.name}!`;
+    }
+    onPlayerEnter(player: Player): void {
+        if (this.questId !== undefined) {
+            if (this.questGiver && !player.hasQuest(this.questId)) {
+                player.socket.write(`\n${this.name} says: ${this.onEnterSpeak}\r\n`);
+            } else if (this.isAggressive) {
+                this.initiateCombat(player);
+            }  
+        }
+
+    }
+
+    initiateCombat(player: Player): void {
+        // fight player
     }
 }

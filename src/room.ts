@@ -1,5 +1,6 @@
 import { Item } from "./item";
 import { NPC, NPCData } from "./npc";
+import { Player } from "./player";
 
 export interface Exit {
     direction: string;
@@ -46,5 +47,11 @@ export interface Exit {
         this.items.splice(itemIndex, 1);
       }
     }
+    onPlayerEnter(player: Player): void {
+      // Notify each NPC in the room that a player has entered
+      for (const npc of this.npcs) {
+          npc.onPlayerEnter(player);
+      }
+  }
   }
   

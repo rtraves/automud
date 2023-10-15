@@ -24,15 +24,20 @@ export interface PlayerData {
   level: number;
   attributes: Attributes;
 }
-interface Attribute {
-  name: string;
-  value: number;
-}
+
 type Attributes = {
   strength: number;
   dexterity: number;
   intelligence: number;
   // ... other attributes
+}
+interface Quest {
+  id: number;
+  name: string;
+  description: string;
+  objectives: QuestObjective[];
+  rewards: QuestReward[];
+  isComplete: boolean;  // Whether the quest is completed
 }
 
 export class PlayerInventory {
@@ -63,6 +68,9 @@ export class PlayerInventory {
         item.name.toLowerCase() === searchTerm || 
         item.keywords?.includes(searchTerm)
     );
+  }
+  findItemById(itemId: number): Item | undefined {
+    return this.items.find(item => item.id === itemId);
   }
 }
 
@@ -232,6 +240,27 @@ export class Player {
   displayExperienceToNextLevel(): void {
     const expNeeded = this.experienceToNextLevel();
     this.socket.write(`Experience needed for next level: ${expNeeded}\r\n`);
+  }
+  quests: Quest[] = [];  // Array to hold the quests
+
+  hasQuest(questId: number): boolean {
+    // Check if the player has a quest with the given ID
+    return this.quests.some(quest => quest.id === questId);
+  }
+
+  addQuest(quest: Quest): void {
+    // Add a quest to the player's quests array
+    this.quests.push(quest);
+  }
+
+  removeQuest(questId: number): void {
+    // Remove a quest with the given ID from the player's quests array
+    this.quests = this.quests.filter(quest => quest.id !== questId);
+  }
+
+  getQuest(questId: number): Quest | undefined {
+    // Get a quest with the given ID from the player's quests array
+    return this.quests.find(quest => quest.id === questId);
   }
   
 }

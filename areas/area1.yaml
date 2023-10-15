@@ -17,6 +17,9 @@ rooms:
       You're surrounded by vibrant flowers and the soft hum of bees. A serene pond lies to the north, while a
       cobblestone path leads west back to the academy entrance and east to a training ground. A fountain bubbles
       softly in the center of the garden. A plaque reads: 'Drink from the fountain to restore your health.'
+    npcIds: [
+        3
+      ]
     exits:
       - direction: west
         roomId: area1_room1
@@ -124,3 +127,14 @@ npcs:
         cost: 10
       - itemId: 4 # Simple Fishing Rod
         cost: 50
+  - id: 3
+    name: Old Fisherman
+    description: A friendly fisherman who needs your help.
+    lookDescription: The old man is dressed is a long, flowing robe. He has a long, white beard.
+    isEnemy: false
+    maxHealth: 100
+    questGiver: true
+    onEnterSpeak: "Hello adventurer, I have a quest for you! Type `quest` to see what I need."
+    health: 100
+    damage: 10
+    respawnTime: 1000
