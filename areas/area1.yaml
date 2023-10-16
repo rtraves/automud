@@ -79,6 +79,9 @@ rooms:
     title: Pond's Edge
     description: |
       The calm waters of the pond reflect the sky. It's a peaceful spot, perfect for reflection. You spot small fish in the clear pool.
+    resources:
+      - resourceType: fishing
+        name: pond
     exits:
       - direction: south
         roomId: area1_room2

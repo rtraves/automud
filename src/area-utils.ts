@@ -4,6 +4,7 @@ import yaml from 'js-yaml';
 import { Item } from './item';
 import { findItemById } from './item-manager';
 import { NPC, NPCData } from './npc';
+import { Resource } from './resource';
 
 interface AreaData {
   npcs: NPCData[];
@@ -16,6 +17,7 @@ interface AreaData {
     items: Item[];
     npcIds: number[];
     npcs: NPCData[];
+    resources: Resource[];
   }[];
 }
 

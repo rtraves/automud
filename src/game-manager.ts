@@ -11,6 +11,7 @@ import { broadcastToRoom, broadcastToAll } from './broadcast-utils';
 import { Session } from './session';
 import * as commands from './commands';
 import { NPC } from './npc';
+import { Resource } from './resource';
 import { resolveCombat } from './combat';
 
 export class GameManager {
@@ -18,12 +19,14 @@ export class GameManager {
   players: Map<string, Player>;
   rooms: Map<string, Room>;
   items: Map<number, Item>;
+  resources: Map<number, Resource>;
   sessions: Map<string, Session>;
 
   private constructor() {
     this.players = new Map();
     this.rooms = new Map();
     this.items = new Map();
+    this.resources = new Map();
     this.sessions = new Map();
   }
 
@@ -40,6 +43,13 @@ export class GameManager {
 
     for (const [itemId, item] of itemData.entries()) {
       this.items.set(itemId, item);
+    }
+
+    const resourcePath = path.join(__dirname, '..', 'resources', 'resources.yaml');
+    const resourceData = loadResource(resourcePath);
+
+    for (const [resourceId, resource] of resourceData.entries()) {
+      this.resources.set(resourceId, resource);
     }
 
     const areaPath = path.join(__dirname, '..', 'areas', 'area1.yaml');
