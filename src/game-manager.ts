@@ -12,6 +12,7 @@ import { Session } from './session';
 import * as commands from './commands';
 import { NPC } from './npc';
 import { Resource } from './resource';
+import { loadResources } from './resource-manager';
 import { resolveCombat } from './combat';
 
 export class GameManager {
@@ -19,7 +20,7 @@ export class GameManager {
   players: Map<string, Player>;
   rooms: Map<string, Room>;
   items: Map<number, Item>;
-  resources: Map<number, Resource>;
+  resources: Map<string, Resource[]>;
   sessions: Map<string, Session>;
 
   private constructor() {
@@ -46,11 +47,7 @@ export class GameManager {
     }
 
     const resourcePath = path.join(__dirname, '..', 'resources', 'resources.yaml');
-    const resourceData = loadResource(resourcePath);
-
-    for (const [resourceId, resource] of resourceData.entries()) {
-      this.resources.set(resourceId, resource);
-    }
+    this.resources = loadResources(resourcePath, this.items);
 
     const areaPath = path.join(__dirname, '..', 'areas', 'area1.yaml');
     const areaRooms = loadArea(areaPath, this.items);

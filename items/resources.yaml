@@ -9,8 +9,3 @@ resources:
           chance: 0.8
         - itemId: 6
           chance: 0.2
-  - type: mining
-    - name: copper
-      description: A copper vein.
-      quantity: 10
-      level: 1

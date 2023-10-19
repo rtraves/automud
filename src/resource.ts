@@ -1,11 +1,10 @@
 // resources.ts
-interface DropTableItem {
+import { Item } from './item';
+
+export interface DropTableItem {
     itemId: number;
+    item?: Item; 
     chance: number;
-}
-  
-interface DropTable {
-    [key: string]: DropTableItem[];
 }
 
 export class Resource {
@@ -14,9 +13,9 @@ export class Resource {
     description: string;
     quantity: number;
     level: number;
-    dropTable: DropTable;
+    dropTable?: DropTableItem[];
 
-  constructor(resourceType: string, name: string, description: string, quantity: number, level: number, dropTable: DropTable) {
+  constructor(resourceType: string, name: string, description: string, quantity: number, level: number, dropTable: DropTableItem[]) {
 	this.resourceType = resourceType;
     this.name = name;
 	this.description = description;
