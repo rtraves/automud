@@ -46,11 +46,11 @@ export class GameManager {
       this.items.set(itemId, item);
     }
 
-    const resourcePath = path.join(__dirname, '..', 'resources', 'resources.yaml');
+    const resourcePath = path.join(__dirname, '..', 'items', 'resources.yaml');
     this.resources = loadResources(resourcePath, this.items);
 
     const areaPath = path.join(__dirname, '..', 'areas', 'area1.yaml');
-    const areaRooms = loadArea(areaPath, this.items);
+    const areaRooms = loadArea(areaPath, this.items, this.resources);
 
     for (const [roomId, room] of areaRooms.entries()) {
       this.rooms.set(roomId, room);
@@ -79,7 +79,7 @@ export class GameManager {
     }
 
     const areaPath = path.join(__dirname, '..', 'areas', 'area1.yaml');
-    const areaRooms = loadArea(areaPath, this.items);
+    const areaRooms = loadArea(areaPath, this.items, this.resources);
 
     for (const [roomId, room] of areaRooms.entries()) {
       this.rooms.set(roomId, room);

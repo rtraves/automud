@@ -21,7 +21,7 @@ interface AreaData {
   }[];
 }
 
-export function loadArea(areaPath: string, itemMap: Map<number, Item>): Map<string, Room> {
+export function loadArea(areaPath: string, itemMap: Map<number, Item>, resourceMap: Map<string, Resource[]>): Map<string, Room> {
   const areaFile = fs.readFileSync(areaPath, 'utf-8');
   const areaData = yaml.load(areaFile) as AreaData;
 
