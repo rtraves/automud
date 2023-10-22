@@ -33,6 +33,19 @@ export function loadArea(areaPath: string, itemMap: Map<number, Item>, resourceM
   }
 
   for (const roomData of areaData.rooms) {
+    const matchedResources: Resource[] = [];
+
+    for (const resource of roomData.resources || []) {
+      const resourcesOfType = resourceMap.get(resource.resourceType);
+      if (resourcesOfType) {
+        const resourceData = resourcesOfType.find(r => r.name === resource.name);
+        if (resourceData) {
+          matchedResources.push(resourceData);
+        }
+      }
+    }
+    roomData.resources = matchedResources;
+
     if (roomData.npcIds) {
       if (!roomData.npcs) {
         roomData.npcs = [];
@@ -55,7 +68,8 @@ export function loadArea(areaPath: string, itemMap: Map<number, Item>, resourceM
       }
     }
 
-    const room = new Room(roomData.id, roomData.title, roomData.description, roomData.exits as Exit[], roomData.items, roomData.npcs, itemMap);
+    const room = new Room(roomData.id, roomData.title, roomData.description, roomData.exits as Exit[], roomData.items, roomData.npcs, itemMap, roomData.resources);
+    console.log(room);
     areaRooms.set(room.id, room);
   }
 
