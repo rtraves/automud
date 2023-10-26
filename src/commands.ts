@@ -218,9 +218,13 @@ export function handleScoreCommand(player: Player){
     player.socket.write(`You have ${AC.LightPurple}${player.experience}${AC.Reset} experience.\r\n`);
     player.socket.write(`You are level ${AC.LightGreen}${player.level}${AC.Reset}.\r\n`);
     player.socket.write(`${AC.LightWhite}Attributes:${AC.Reset}\r\n`);
-    player.socket.write(`- Strength: ${AC.LightRed}${player.attributes.strength}${AC.Reset}\r\n`);
-    player.socket.write(`- Dexterity: ${AC.Green}${player.attributes.dexterity}${AC.Reset}\r\n`);
-    player.socket.write(`- Intelligence: ${AC.LightBlue}${player.attributes.intelligence}${AC.Reset}\r\n`);
+    for (const attribute in player.attributes) {
+      player.socket.write(`- ${attribute}: ${AC.LightGreen}${player.attributes[attribute as keyof typeof player.attributes]}${AC.Reset}\r\n`);
+    }
+    player.socket.write(`${AC.LightWhite}Life Skills:${AC.Reset}\r\n`);
+    for (const skill of player.lifeSkills) {
+      player.socket.write(`- ${skill.name}: ${AC.LightGreen}${skill.level}${AC.Reset}\r\n`);
+    }
     player.displayExperienceToNextLevel();
     player.socket.write(`${AC.LightCyan}------------------------------------------------${AC.Reset}\r\n`);
 }
