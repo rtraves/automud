@@ -9,11 +9,11 @@ export interface DropTableItem {
 
 export class Resource {
 	resourceType: string;
-    name: string;
-    description: string;
-    quantity: number;
-    level: number;
-    dropTable?: DropTableItem[];
+  name: string;
+  description: string;
+  quantity: number;
+  level: number;
+  dropTable?: DropTableItem[];
 
   constructor(resourceType: string, name: string, description: string, quantity: number, level: number, dropTable: DropTableItem[]) {
 	this.resourceType = resourceType;

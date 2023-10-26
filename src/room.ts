@@ -15,7 +15,7 @@ export interface Exit {
     exits: Exit[];
     items: Item[];
     npcs: NPC[];
-    reasources: Resource[];
+    resources: Resource[];
 
     constructor(id: string, title: string, description: string, exits: Exit[], items: Item[], npcData: NPCData[], itemMap: Map<number, Item>, reasources: Resource[]) {
       this.id = id;
@@ -24,7 +24,7 @@ export interface Exit {
       this.exits = exits;
       this.items = items || [];
       this.npcs = npcData ? npcData.map((data) => new NPC(data, itemMap, this)) : [];
-      this.reasources = reasources;
+      this.resources = reasources;
     }
   
     addExit(exit: Exit): void {

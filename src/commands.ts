@@ -308,39 +308,38 @@ export function handleSellCommand(gameManager: GameManager, player: Player, args
       player.socket.write(`${npcInRoom.name} is not interested in buying items.\r\n`);
   }
 }
-export function handleFishCommand(gameManager: GameManager, player: Player) {
+export function handleFishCommand(gameManager: GameManager, player: Player, args: string[]) {
   const currentRoom = gameManager.rooms.get(player.currentRoom);
-  const items = gameManager.items;
-  const silverfish = items.get(5);
-  const goldfish = items.get(6);
+  if (args.length === 0) {
+      player.socket.write('Fish what?\r\n');
+      return;
+  }
 
-  if (!silverfish || !goldfish) {
-    console.error('Silverfish or Goldfish is not defined!');
-    player.socket.write("There seems to be an error, please try again later.\r\n");
+  const resourceCommand = args.join(' ').toLowerCase();
+  const matchedResource = currentRoom?.resources.find(resource => resource.name.toLowerCase() === resourceCommand);
+  if (!matchedResource) {
+      player.socket.write(`Could not find ${resourceCommand} here.\r\n`);
+      return;
+  }
+
+  const fishingSkill = player.lifeSkills.find(skill => skill.name.toLowerCase() === 'fishing');
+  if (!fishingSkill || fishingSkill.level < matchedResource.level) {
+    player.socket.write("You need a higher fishing skill to fish here!\r\n");
     return;
   }
-  // TODO: should handle fishing room better (not straight id)
-  if (currentRoom?.id !== 'area1_room7') {
-      player.socket.write("You can't fish here!\r\n");
-      return;
-  }
-  if (!player.inventory.findItem('rod')) { // Check if player has the fishing rod
-      player.socket.write("You need a fishing rod to fish!\r\n");
-      return;
-  }
+
   player.socket.write(`${AC.LightBlue}You cast your line into the ${AC.Blue}water${AC.Reset}...\r\n`);
   setTimeout(() => {
     const chance = Math.random();
-    if (chance < 0.3) {
-        player.socket.write("You didn't catch anything this time.\r\n");
-    } else if (chance < 0.4) {  // 10% chance for goldfish
-        player.inventory.addItem(goldfish);
-        player.socket.write(`You caught a ${AC.Yellow}Goldfish!${AC.Reset}\r\n`);
-    } else {  // 60% chance for silverfish
-        player.inventory.addItem(silverfish);
-        player.socket.write(`You caught a ${AC.DarkGray}Silverfish${AC.Reset}!\r\n`);
+    const dropItem = matchedResource.dropTable?.find(item => chance < item.chance);
+    if (!dropItem || !dropItem.item) {
+      player.socket.write("You didn't catch anything this time.\r\n");
+    } else {
+      player.inventory.addItem(dropItem.item);
+      player.socket.write(`You caught a ${dropItem.item.name}!\r\n`);
+      player.gainLifeSkillExperience('fishing', 5); // should review later how we want to handle xp gain
     }
-  }, 3000);  // 3000 milliseconds = 3 seconds
+  }, 3000);  // 3000 milliseconds = 3 seconds  // 3000 milliseconds = 3 seconds
 }
 
 export function handleReloadCommand(gameManager: GameManager, player: Player, args: string[]) {
