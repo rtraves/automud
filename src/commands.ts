@@ -108,6 +108,9 @@ export function handleLookCommand(player: Player, room: Room | undefined, args?:
           }
         }
       }
+      for (const resources of room.resources) {
+        player.socket.write(colorize(`${resources.name}\r\n`, AC.Blue));
+      }
       if (room.items && room.items.length > 0) {
                 for (const item of room.items) {
                     player.socket.write(colorize(`${item.description}\r\n`, AC.Purple));
@@ -327,19 +330,145 @@ export function handleFishCommand(gameManager: GameManager, player: Player, args
     player.socket.write("You need a higher fishing skill to fish here!\r\n");
     return;
   }
+  if (!player.inventory.findItem('rod')) { 
+    player.socket.write("You need a fishing rod to fish!\r\n"); 
+    return; 
+  } 
 
   player.socket.write(`${AC.LightBlue}You cast your line into the ${AC.Blue}water${AC.Reset}...\r\n`);
   setTimeout(() => {
-    const chance = Math.random();
-    const dropItem = matchedResource.dropTable?.find(item => chance < item.chance);
+    if (!matchedResource?.dropTable) {
+      player.socket.write("You didn't catch anything this time.\r\n");
+      return;
+    }
+
+    const totalChance = matchedResource.dropTable.reduce((sum, item) => sum + item.chance, 0);
+    let randomChance = Math.random() * totalChance;
+    const dropTableSorted = matchedResource.dropTable.sort((a, b) => a.chance - b.chance);
+
+    let dropItem;
+    for (const item of dropTableSorted) {
+      randomChance -= item.chance;
+      if (randomChance <= 0) {
+        dropItem = item;
+        break;
+      }
+    }
+
     if (!dropItem || !dropItem.item) {
       player.socket.write("You didn't catch anything this time.\r\n");
     } else {
       player.inventory.addItem(dropItem.item);
       player.socket.write(`You caught a ${dropItem.item.name}!\r\n`);
-      player.gainLifeSkillExperience('fishing', 5); // should review later how we want to handle xp gain
+      player.gainLifeSkillExperience('Fishing', 5);
     }
-  }, 3000);  // 3000 milliseconds = 3 seconds  // 3000 milliseconds = 3 seconds
+  }, 3000);
+}
+export function handleMineCommand(gameManager: GameManager, player: Player, args: string[]) {
+  const currentRoom = gameManager.rooms.get(player.currentRoom);
+  if (args.length === 0) {
+      player.socket.write('Mine what?\r\n');
+      return;
+  }
+
+  const resourceCommand = args.join(' ').toLowerCase();
+  const matchedResource = currentRoom?.resources.find(resource => resource.name.toLowerCase() === resourceCommand);
+  if (!matchedResource) {
+      player.socket.write(`Could not find ${resourceCommand} here.\r\n`);
+      return;
+  }
+
+  const miningSkill = player.lifeSkills.find(skill => skill.name.toLowerCase() === 'mining');
+  if (!miningSkill || miningSkill.level < matchedResource.level) {
+    player.socket.write("You need a higher Mining skill to mine here!\r\n");
+    return;
+  }
+  if (!player.inventory.findItem('pickaxe')) { 
+    player.socket.write("You need a pickaxe to mine!\r\n"); 
+    return; 
+  } 
+
+  player.socket.write(`${AC.LightBlue}You swing your pickaxe at the ${AC.Blue}ore${AC.Reset}...\r\n`);
+  setTimeout(() => {
+    if (!matchedResource?.dropTable) {
+      player.socket.write("You didn't find anything this time.\r\n");
+      return;
+    }
+  
+    const totalChance = matchedResource.dropTable.reduce((sum, item) => sum + item.chance, 0);
+    let randomChance = Math.random() * totalChance;
+    const dropTableSorted = matchedResource.dropTable.sort((a, b) => a.chance - b.chance);
+  
+    let dropItem;
+    for (const item of dropTableSorted) {
+      randomChance -= item.chance;
+      if (randomChance <= 0) {
+        dropItem = item;
+        break;
+      }
+    }
+  
+    if (!dropItem || !dropItem.item) {
+      player.socket.write("You didn't find anything this time.\r\n");
+    } else {
+      player.inventory.addItem(dropItem.item);
+      player.socket.write(`You mined ${dropItem.item.name}!\r\n`);
+      player.gainLifeSkillExperience('Mining', 5);
+    }
+  }, 3000);
+}
+export function handleChopCommand(gameManager: GameManager, player: Player, args: string[]) {
+  const currentRoom = gameManager.rooms.get(player.currentRoom);
+  if (args.length === 0) {
+      player.socket.write('Chop what?\r\n');
+      return;
+  }
+
+  const resourceCommand = args.join(' ').toLowerCase();
+  const matchedResource = currentRoom?.resources.find(resource => resource.name.toLowerCase() === resourceCommand);
+  if (!matchedResource) {
+      player.socket.write(`Could not find ${resourceCommand} here.\r\n`);
+      return;
+  }
+
+  const woodcuttingSkill = player.lifeSkills.find(skill => skill.name.toLowerCase() === 'mining');
+  if (!woodcuttingSkill || woodcuttingSkill.level < matchedResource.level) {
+    player.socket.write("You need a higher Woodcutting skill to chop here!\r\n");
+    return;
+  }
+  if (!player.inventory.findItem('hatchet')) { 
+    player.socket.write("You need a hatchet to chop!\r\n"); 
+    return; 
+  } 
+
+  player.socket.write(`${AC.LightBlue}You swing your axe at the ${AC.Blue}tree${AC.Reset}...\r\n`);
+  setTimeout(() => {
+    if (!matchedResource?.dropTable) {
+      player.socket.write("You didn't find anything this time.\r\n");
+      return;
+    }
+  
+    const totalChance = matchedResource.dropTable.reduce((sum, item) => sum + item.chance, 0);
+    let randomChance = Math.random() * totalChance;
+    const dropTableSorted = matchedResource.dropTable.sort((a, b) => a.chance - b.chance);
+  
+    let dropItem;
+    for (const item of dropTableSorted) {
+      randomChance -= item.chance;
+      if (randomChance <= 0) {
+        dropItem = item;
+        break;
+      }
+    }
+  
+    if (!dropItem || !dropItem.item) {
+      player.socket.write("You didn't find anything this time.\r\n");
+    } else {
+      player.inventory.addItem(dropItem.item);
+      player.socket.write(`You chopped a ${dropItem.item.name}!\r\n`);
+      player.gainLifeSkillExperience('Woodcutting', 5);
+    }
+  }, 3000);
 }
 
 export function handleReloadCommand(gameManager: GameManager, player: Player, args: string[]) {

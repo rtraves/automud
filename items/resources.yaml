@@ -5,9 +5,9 @@ resources:
     quantity: 10
     level: 1
     dropTable:
-      - itemId: 5
+      - itemId: 7
         chance: 0.8
-      - itemId: 6
+      - itemId: 8
         chance: 0.2
 
   - resourceType: fishing
@@ -16,9 +16,9 @@ resources:
     quantity: 10
     level: 1
     dropTable:
-      - itemId: 7
+      - itemId: 9
         chance: 0.8
-      - itemId: 8
+      - itemId: 10
         chance: 0.2
 
   - resourceType: mining
@@ -27,7 +27,7 @@ resources:
     quantity: 10
     level: 1
     dropTable:
-      - itemId: 7
+      - itemId: 11
         chance: 1.0
 
   - resourceType: mining
@@ -36,7 +36,7 @@ resources:
     quantity: 10
     level: 1
     dropTable:
-      - itemId: 8
+      - itemId: 12
         chance: 1.0
 
   - resourceType: woodcutting
@@ -45,7 +45,7 @@ resources:
     quantity: 10
     level: 1
     dropTable:
-      - itemId: 9
+      - itemId: 13
         chance: 1.0
 
   - resourceType: woodcutting
@@ -54,5 +54,5 @@ resources:
     quantity: 10
     level: 1
     dropTable:
-      - itemId: 10
+      - itemId: 14
         chance: 1.0
