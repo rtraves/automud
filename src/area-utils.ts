@@ -69,7 +69,6 @@ export function loadArea(areaPath: string, itemMap: Map<number, Item>, resourceM
     }
 
     const room = new Room(roomData.id, roomData.title, roomData.description, roomData.exits as Exit[], roomData.items, roomData.npcs, itemMap, roomData.resources);
-    console.log(room);
     areaRooms.set(room.id, room);
   }
 

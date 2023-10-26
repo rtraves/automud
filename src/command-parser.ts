@@ -22,6 +22,8 @@ export interface Command {
     Buy = 'buy',
     Sell = 'sell',
     Fish = 'fish',
+    Mine = 'mine',
+    Chop = 'chop',
     Reload = 'reload', // Admin
     Restore = 'restore', // Admin
     Goto = 'goto', // Admin
@@ -109,6 +111,10 @@ export interface Command {
         return { name: CommandName.Sell, args};
       case 'fish':
         return { name: CommandName.Fish, args};
+      case 'mine':
+        return { name: CommandName.Mine, args};
+      case 'chop':
+        return { name: CommandName.Chop, args};
       default:
         return { name: '', args: [] };
     }

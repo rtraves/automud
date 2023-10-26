@@ -32,6 +32,23 @@ items:
       amount: 20
 
   - id: 4
+    name: Simple Pickaxe
+    description: A simple pickaxe.
+    lookDescription: A simple pickaxe.
+    keywords:
+      - pick
+      - pickaxe
+    value: 30
+
+  - id: 5
+    name: Simple hatchet
+    description: A simple hatchet.
+    lookDescription: A simple hatchet.
+    keywords:
+      - hatchet
+    value: 30
+
+  - id: 6
     name: Simple Fishing Rod
     description: A simple fishing rod.
     lookDescription: A simple fishing rod.
@@ -40,7 +57,7 @@ items:
       - fishing rod
     value: 30
 
-  - id: 5
+  - id: 7
     name: Silverfish
     description: A commonly found fish.
     keywords:
@@ -48,7 +65,7 @@ items:
       - common fish
     value: 2
 
-  - id: 6
+  - id: 8
     name: Rare Golden Fish
     description: A rare fish that shines like gold.
     keywords:
@@ -57,7 +74,7 @@ items:
       - golden
     value: 10
 
-  - id: 7
+  - id: 9
     name: Trout
     description: A commonly found fish.
     keywords:
@@ -65,7 +82,7 @@ items:
       - trout
     value: 5
 
-  - id: 8
+  - id: 10
     name: Salmon
     description: A commonly found fish.
     keywords:
@@ -73,7 +90,7 @@ items:
       - salmon
     value: 5
 
-  - id: 9
+  - id: 11
     name: Bronze Ore
     description: A common ore.
     keywords:
@@ -81,7 +98,7 @@ items:
       - bronze
     value: 2
 
-  - id: 10
+  - id: 12
     name: Iron Ore
     description: A common ore.
     keywords:
@@ -89,12 +106,12 @@ items:
       - iron
     value: 5
 
-  - id: 11
-    name: Tree
-    description: A common tree.
+  - id: 13
+    name: Log
+    description: A common wooden Log.
     value: 2
 
-  - id: 12
-    name: Oak Tree
-    description: A common tree.
+  - id: 14
+    name: Oak Log
+    description: A common wooden log.
     value: 5

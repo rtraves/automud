@@ -20,6 +20,12 @@ rooms:
     npcIds: [
         3
       ]
+    itemIds: [
+        5 # Simple Hatchet
+      ]
+    resources:
+      - resourceType: woodcutting
+        name: tree
     exits:
       - direction: west
         roomId: area1_room1
@@ -36,6 +42,14 @@ rooms:
       1, # Goblin
       2 # Shopkeeper
     ]
+    itemIds: [
+        4 # Simple Pickaxe
+      ]
+    resources:
+      - resourceType: mining
+        name: bronze ore
+      - resourceType: mining
+        name: iron ore
     exits:
       - direction: west
         roomId: area1_room2
@@ -79,6 +93,9 @@ rooms:
     title: Pond's Edge
     description: |
       The calm waters of the pond reflect the sky. It's a peaceful spot, perfect for reflection. You spot small fish in the clear pool.
+    itemIds: [
+        6 # Simple Fishing Rod
+      ]
     resources:
       - resourceType: fishing
         name: pond

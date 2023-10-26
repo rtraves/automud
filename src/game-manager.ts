@@ -196,6 +196,12 @@ export class GameManager {
       case CommandName.Fish:
         commands.handleFishCommand(this, player, command.args);
         break;
+      case CommandName.Chop:
+        commands.handleChopCommand(this, player, command.args);
+        break;
+      case CommandName.Mine:
+        commands.handleMineCommand(this, player, command.args);
+        break;
       default:
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
     }
