@@ -23,6 +23,7 @@ export interface PlayerData {
   gold: number;
   level: number;
   attributes: Attributes;
+  lifeSkills: LifeSkill[];
 }
 
 type Attributes = {
@@ -31,6 +32,7 @@ type Attributes = {
   intelligence: number;
   // ... other attributes
 }
+
 interface Quest {
   id: number;
   name: string;
@@ -38,6 +40,12 @@ interface Quest {
   objectives: QuestObjective[];
   rewards: QuestReward[];
   isComplete: boolean;  // Whether the quest is completed
+}
+
+type LifeSkill = {
+  name: string;
+  level: number;
+  experience: number;
 }
 
 export class PlayerInventory {
@@ -97,6 +105,23 @@ export class Player {
     dexterity: 5,
     intelligence: 5
   };
+  lifeSkills: LifeSkill[] = [
+    {
+      name: 'Mining',
+      level: 1,
+      experience: 0
+    },
+    {
+      name: 'Fishing',
+      level: 1,
+      experience: 0
+    },
+    {
+      name: 'Woodcutting',
+      level: 1,
+      experience: 0
+    }
+  ];
 
   constructor(id: string, currentRoom: string, socket: net.Socket) {
     this.id = id;
@@ -113,6 +138,7 @@ export class Player {
   static expForLevel(level: number): number {
     return Player.BASE_EXP * (level * (level + 1) * (2*level + 1) / 6);
   }
+
   attack(target: NPC): void {
     const damage = Math.floor(Math.random() * 10);
     target.takeDamage(damage);
@@ -149,11 +175,13 @@ export class Player {
       experience: this.experience,
       gold: this.gold,
       level: this.level,
-      attributes: this.attributes
+      attributes: this.attributes,
+      lifeSkills: this.lifeSkills
     };
 
     fs.writeFileSync(`./data/players/${this.name}.json`, JSON.stringify(playerData, null, 4), 'utf-8');
   }
+
   load(): void {
     try {
       const data = fs.readFileSync(`./data/players/${this.name}.json`, 'utf8');
@@ -171,6 +199,7 @@ export class Player {
       this.gold = playerData.gold;
       this.level = playerData.level;
       this.attributes = playerData.attributes;
+      this.lifeSkills = playerData.lifeSkills;
     } catch (err) {
       // TODO: Add this to a log file instead of console.error
       console.error(`Failed to load player data for ${this.name}. Error: ${err}`);
@@ -203,16 +232,20 @@ export class Player {
     hash.update(password);
     return hash.digest('hex');
   }
+
   getPrompt(): string {
     return `<${AC.LightGreen}HP:${this.health} ${AC.LightCyan}MP:${this.mana}${AC.LightYellow} ST:${this.stamina}${AC.Reset}> `;
   }
+
   takeDamage(amount: number) {
     this.health -= amount;
   }
+
   earnExperience(amount: number): void {
     this.experience += amount;
     this.updateLevel();
-}
+  }
+
   updateLevel(): void {
     let level = 1;
     while (Player.expForLevel(level) <= this.experience && level < 100) {
@@ -231,6 +264,7 @@ export class Player {
   increaseAttribute(attributeName: keyof Attributes, amount: number): void {
     this.attributes[attributeName] += amount;
   }
+
   experienceToNextLevel(): number {
     const nextLevelExp = Player.expForLevel(this.level + 1);
     const currentExp = this.experience;
@@ -241,6 +275,7 @@ export class Player {
     const expNeeded = this.experienceToNextLevel();
     this.socket.write(`Experience needed for next level: ${expNeeded}\r\n`);
   }
+
   quests: Quest[] = [];  // Array to hold the quests
 
   hasQuest(questId: number): boolean {
@@ -262,5 +297,45 @@ export class Player {
     // Get a quest with the given ID from the player's quests array
     return this.quests.find(quest => quest.id === questId);
   }
-  
+
+  private static readonly BASE_LIFE_SKILL_EXP: number = 100;
+
+  static expForLifeSkillLevel(level: number): number {
+    return Player.BASE_LIFE_SKILL_EXP * (level * (level + 1) * (2*level + 1) / 6);
+  }
+
+  gainLifeSkillExperience(resourceType: string, amount: number) {
+    const lifeSkill = this.lifeSkills.find(skill => skill.name.toLowerCase() === resourceType.toLowerCase());
+    if (lifeSkill) {
+      lifeSkill.experience += amount;
+      this.updateLifeSkillLevel(lifeSkill);
+    }
+  }
+
+  updateLifeSkillLevel(lifeSkill: LifeSkill): void {
+    let level = 1;
+    while (Player.expForLifeSkillLevel(level) <= lifeSkill.experience && level < 100) {
+      level++;
+    }
+
+    if (level !== lifeSkill.level) {
+      lifeSkill.level = level;
+      this.socket.write(`${AC.LightWhite}Congratulations! ${AC.White}Your ${lifeSkill.name} skill has reached level ${AC.Cyan}${level}.${AC.Reset}\r\n`);
+    }
+  }
+
+  experienceToNextLifeSkillLevel(name: string): number {
+    const lifeSkill = this.lifeSkills.find(skill => skill.name === name);
+    if (lifeSkill) {
+      const nextLevelExp = Player.expForLifeSkillLevel(lifeSkill.level + 1);
+      const currentExp = lifeSkill.experience;
+      return nextLevelExp - currentExp;
+    }
+    return 0;
+  }
+
+  displayExperienceToNextLifeSkillLevel(name: string): void {
+    const expNeeded = this.experienceToNextLifeSkillLevel(name);
+    this.socket.write(`Experience needed for next ${name} level: ${expNeeded}\r\n`);
+  }
 }

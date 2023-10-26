@@ -1,0 +1,6 @@
+- DONE NEED TO TEST implament skills on player 
+- DONE NEED TO TEST make methods on the player to (ambiguous enough so i dont need to write one for each skill) gain xp gain level
+- DONE NEED TO TEST redo the fishing command to work using the resource
+- add mining and chop? command
+- DONE NEEDS TEST get the drops of the resource and put in inv - also needs to work us
+- add to the info command to display your lifeskills with your other char stats
