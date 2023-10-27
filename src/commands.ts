@@ -311,6 +311,8 @@ export function handleSellCommand(gameManager: GameManager, player: Player, args
       return;
   } else if (npcInRoom.isShop && item) {
       player.socket.write(npcInRoom.buyItem(player, item));
+  } else if (!item) {
+      player.socket.write(`You do not have ${itemName}.\r\n`);
   } else {
       player.socket.write(`${npcInRoom.name} is not interested in buying items.\r\n`);
   }
