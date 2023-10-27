@@ -12,7 +12,9 @@ export interface PlayerData {
   id: string;
   name: string;
   currentRoom: string;
-  inventory: PlayerInventory;
+  inventory: {
+    items: [string, Item[]][]
+  };
   password?: string;
   isAdmin?: boolean;
   maxHealth: number;
@@ -49,36 +51,43 @@ type LifeSkill = {
 }
 
 export class PlayerInventory {
-  items: Item[];
+  items: Map<string, Item[]>;
 
-  constructor(items: Item[] = []) {
-    this.items = items;
+  constructor() {
+    this.items = new Map();
   }
 
   addItem(item: Item): void {
-    this.items.push(item);
-  }
-
-  removeItem(item: Item): void {
-    const itemIndex = this.items.findIndex((i) => i.id === item.id);
-    if (itemIndex > -1) {
-      this.items.splice(itemIndex, 1);
+    const existingItems = this.items.get(item.name);
+    if (existingItems) {
+      existingItems.push(item);
+    } else {
+      this.items.set(item.name, [item]);
     }
   }
 
-  get length(): number {
-    return this.items.length;
+  removeItem(itemName: string, index: number): void {
+    const existingItems = this.items.get(itemName);
+    if (existingItems) {
+      existingItems.splice(index, 1);
+      if (existingItems.length === 0) {
+        this.items.delete(itemName);
+      }
+    }
   }
 
   findItem(itemName: string): Item | undefined {
     const searchTerm = itemName.toLowerCase();
-    return this.items.find((item) => 
+    const itemsArray = Array.from(this.items.values()).flat();
+    return itemsArray.find((item) => 
         item.name.toLowerCase() === searchTerm || 
         item.keywords?.includes(searchTerm)
     );
   }
-  findItemById(itemId: number): Item | undefined {
-    return this.items.find(item => item.id === itemId);
+
+  findItemByIndex(itemName: string, index: number): Item | undefined {
+    const existingItems = this.items.get(itemName);
+    return existingItems ? existingItems[index] : undefined;
   }
 }
 
@@ -165,7 +174,9 @@ export class Player {
       id: this.id,
       name: this.name,
       currentRoom: this.currentRoom,
-      inventory: this.inventory,
+      inventory: {
+        items: Array.from(this.inventory.items.entries())
+      },
       password: this.password,
       isAdmin: this.isAdmin,
       health: this.health,
@@ -189,7 +200,8 @@ export class Player {
       this.name = playerData.name;
       this.password = playerData.password;
       this.currentRoom = playerData.currentRoom;
-      this.inventory = new PlayerInventory(playerData.inventory.items);
+      this.inventory = new PlayerInventory();
+      this.inventory.items = new Map(playerData.inventory.items);
       this.isAdmin = playerData.isAdmin;
       this.health = playerData.health;
       this.maxHealth = playerData.maxHealth;

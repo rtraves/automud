@@ -16,6 +16,7 @@ items:
     keywords:
       - sword
       - testing sword
+    value: 1
 
   - id: 3
     name: Small Health Potion
@@ -30,6 +31,7 @@ items:
     effect: 
       type: heal
       amount: 20
+    value: 50
 
   - id: 4
     name: Simple Pickaxe

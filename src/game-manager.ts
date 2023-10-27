@@ -86,14 +86,10 @@ export class GameManager {
     }
 
     for (const player of this.players.values()) {
-      const updatedInventory: Item[] = [];
-      for (const item of player.inventory.items) {
-        const updatedItem = this.items.get(item.id);
-        if (updatedItem) {
-          updatedInventory.push(updatedItem);
-        }
-      }
-      player.inventory.items = updatedInventory;
+      player.inventory.items.forEach((items, itemName) => {
+        const updatedItems = items.map(item => this.items.get(item.id) || item);
+        player.inventory.items.set(itemName, updatedItems);
+      });
     }
   }
 

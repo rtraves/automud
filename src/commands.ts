@@ -74,14 +74,14 @@ export function handleWhoCommand(gameManager: GameManager, player: Player) {
   }
 
 export function handleInventoryCommand(player: Player) {
-    if (player.inventory.length === 0) {
+    if (player.inventory.items.size === 0) {
       player.socket.write('You are not carrying anything.\r\n');
     } else {
       player.socket.write('You are carrying:\r\n');
-      for (const item of player.inventory.items) {
+      for (const [itemName, items] of player.inventory.items.entries()) {
         // TODO: colorize items
-        player.socket.write(`- ${AC.LightGreen}${item.name}\r\n`);
-      };
+        player.socket.write(`- ${AC.LightGreen}${itemName} (${items.length})\r\n`);
+      }
     }
   }
 
@@ -145,20 +145,18 @@ export function handleDropCommand(gameManager: GameManager,player: Player, args:
 
     const itemName = args.join(' ');
     const item = player.inventory.findItem(itemName);
-
     if (!item) {
       player.socket.write(`You do not have ${itemName}.\r\n`);
       return;
     }
-
+  
     const currentRoom = gameManager.rooms.get(player.currentRoom);
-
     if (!currentRoom) {
       player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
       return;
     }
-
-    player.inventory.removeItem(item);
+  
+    player.inventory.removeItem(item.name , 0);
     currentRoom.addItem(item);
     player.socket.write(`You drop ${item.name}.\r\n`);
     broadcastToRoom(`${player.name} drops ${item.name}.\r\n`, player, gameManager.players);
@@ -249,13 +247,15 @@ export function handleDrinkCommand(gameManager: GameManager, player: Player, arg
   if (!itemInInventory) {
       player.socket.write(`You do not have ${itemName}.\r\n`);
       return;
-  } else if (itemInInventory.useCommand === 'drink') {
+  } else {
+    if (itemInInventory.useCommand === 'drink') {
       const effectName = itemInInventory.effect?.type;
       const effectAmount = itemInInventory.effect?.amount;
       effectHandlers[effectName](player, effectAmount);
       player.socket.write(`You restore ${effectAmount} health.\r\n`);
-      player.inventory.removeItem(itemInInventory);
+      player.inventory.removeItem(itemName, 0);
       currentRoom?.removeItem(itemInInventory);
+    }
   }
 }
 export function handleListCommand(gameManager: GameManager, player: Player) {
@@ -334,7 +334,8 @@ export function handleFishCommand(gameManager: GameManager, player: Player, args
     player.socket.write("You need a higher fishing skill to fish here!\r\n");
     return;
   }
-  if (!player.inventory.findItem('rod')) { 
+  const fishingRod = player.inventory.findItem('rod');
+  if (!fishingRod) { 
     player.socket.write("You need a fishing rod to fish!\r\n"); 
     return; 
   } 
@@ -387,7 +388,9 @@ export function handleMineCommand(gameManager: GameManager, player: Player, args
     player.socket.write("You need a higher Mining skill to mine here!\r\n");
     return;
   }
-  if (!player.inventory.findItem('pickaxe')) { 
+
+  const pickaxe = player.inventory.findItem('pickaxe');
+  if (!pickaxe) { 
     player.socket.write("You need a pickaxe to mine!\r\n"); 
     return; 
   } 
@@ -440,7 +443,9 @@ export function handleChopCommand(gameManager: GameManager, player: Player, args
     player.socket.write("You need a higher Woodcutting skill to chop here!\r\n");
     return;
   }
-  if (!player.inventory.findItem('hatchet')) { 
+
+  const hatchet = player.inventory.findItem('hatchet');
+  if (!hatchet) { 
     player.socket.write("You need a hatchet to chop!\r\n"); 
     return; 
   } 
@@ -483,6 +488,7 @@ export function handleReloadCommand(gameManager: GameManager, player: Player, ar
   else {
     player.socket.write(`${player}: Reloading...\r\n`);
     gameManager.reload();
+    player.socket.write(`${player}: Reloaded.\r\n`);
   }
 }
 

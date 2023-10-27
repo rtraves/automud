@@ -144,9 +144,10 @@ export class NPC {
     if (!this.isShop || !this.shopItems) {
       return `${this.name} is not a shopkeeper.`;
     }
+    console.log(item);
     if (item.value) {
       player.gold += item.value;  // Player's gold is increased
-      player.inventory.removeItem(item);  // Removes the item from the player's inventory
+      player.inventory.removeItem(item.name, 0);  // Removes the item from the player's inventory
       return `You sold ${item.name} for ${item.value} gold!`;
     }
     return `You can't sell ${item.name}!`;
