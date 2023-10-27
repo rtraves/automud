@@ -43,8 +43,8 @@ export function handleMoveCommand(gameManager: GameManager, player: Player, comm
   broadcastToRoom(`${player.name} leaves ${command.args[0]}.\r\n`, player, gameManager.players);
   player.currentRoom = newRoom.id;
   broadcastToRoom(`${player.name} has arrived.\r\n`, player, gameManager.players);
-
   handleLookCommand(player, newRoom);
+  newRoom.onPlayerEnter(player);
 }
 
 export function handleKillCommand(gameManager: GameManager, player: Player, args: string[]) {
@@ -74,14 +74,14 @@ export function handleWhoCommand(gameManager: GameManager, player: Player) {
   }
 
 export function handleInventoryCommand(player: Player) {
-    if (player.inventory.length === 0) {
+    if (player.inventory.items.size === 0) {
       player.socket.write('You are not carrying anything.\r\n');
     } else {
       player.socket.write('You are carrying:\r\n');
-      for (const item of player.inventory.items) {
+      for (const [itemName, items] of player.inventory.items.entries()) {
         // TODO: colorize items
-        player.socket.write(`- ${AC.LightGreen}${item.name}\r\n`);
-      };
+        player.socket.write(`- ${AC.LightGreen}${itemName} (${items.length})\r\n`);
+      }
     }
   }
 
@@ -107,6 +107,9 @@ export function handleLookCommand(player: Player, room: Room | undefined, args?:
             player.socket.write(colorize(`${npc.name}\r\n`, AC.Yellow));
           }
         }
+      }
+      for (const resources of room.resources) {
+        player.socket.write(colorize(`${resources.name}\r\n`, AC.Blue));
       }
       if (room.items && room.items.length > 0) {
                 for (const item of room.items) {
@@ -142,20 +145,18 @@ export function handleDropCommand(gameManager: GameManager,player: Player, args:
 
     const itemName = args.join(' ');
     const item = player.inventory.findItem(itemName);
-
     if (!item) {
       player.socket.write(`You do not have ${itemName}.\r\n`);
       return;
     }
-
+  
     const currentRoom = gameManager.rooms.get(player.currentRoom);
-
     if (!currentRoom) {
       player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
       return;
     }
-
-    player.inventory.removeItem(item);
+  
+    player.inventory.removeItem(item.name , 0);
     currentRoom.addItem(item);
     player.socket.write(`You drop ${item.name}.\r\n`);
     broadcastToRoom(`${player.name} drops ${item.name}.\r\n`, player, gameManager.players);
@@ -215,9 +216,13 @@ export function handleScoreCommand(player: Player){
     player.socket.write(`You have ${AC.LightPurple}${player.experience}${AC.Reset} experience.\r\n`);
     player.socket.write(`You are level ${AC.LightGreen}${player.level}${AC.Reset}.\r\n`);
     player.socket.write(`${AC.LightWhite}Attributes:${AC.Reset}\r\n`);
-    player.socket.write(`- Strength: ${AC.LightRed}${player.attributes.strength}${AC.Reset}\r\n`);
-    player.socket.write(`- Dexterity: ${AC.Green}${player.attributes.dexterity}${AC.Reset}\r\n`);
-    player.socket.write(`- Intelligence: ${AC.LightBlue}${player.attributes.intelligence}${AC.Reset}\r\n`);
+    for (const attribute in player.attributes) {
+      player.socket.write(`- ${attribute}: ${AC.LightGreen}${player.attributes[attribute as keyof typeof player.attributes]}${AC.Reset}\r\n`);
+    }
+    player.socket.write(`${AC.LightWhite}Life Skills:${AC.Reset}\r\n`);
+    for (const skill of player.lifeSkills) {
+      player.socket.write(`- ${skill.name}: ${AC.LightGreen}${skill.level}${AC.Reset}\r\n`);
+    }
     player.displayExperienceToNextLevel();
     player.socket.write(`${AC.LightCyan}------------------------------------------------${AC.Reset}\r\n`);
 }
@@ -242,13 +247,15 @@ export function handleDrinkCommand(gameManager: GameManager, player: Player, arg
   if (!itemInInventory) {
       player.socket.write(`You do not have ${itemName}.\r\n`);
       return;
-  } else if (itemInInventory.useCommand === 'drink') {
+  } else {
+    if (itemInInventory.useCommand === 'drink') {
       const effectName = itemInInventory.effect?.type;
       const effectAmount = itemInInventory.effect?.amount;
       effectHandlers[effectName](player, effectAmount);
       player.socket.write(`You restore ${effectAmount} health.\r\n`);
-      player.inventory.removeItem(itemInInventory);
+      player.inventory.removeItem(itemName, 0);
       currentRoom?.removeItem(itemInInventory);
+    }
   }
 }
 export function handleListCommand(gameManager: GameManager, player: Player) {
@@ -304,41 +311,189 @@ export function handleSellCommand(gameManager: GameManager, player: Player, args
       return;
   } else if (npcInRoom.isShop && item) {
       player.socket.write(npcInRoom.buyItem(player, item));
+  } else if (!item) {
+      player.socket.write(`You do not have ${itemName}.\r\n`);
   } else {
       player.socket.write(`${npcInRoom.name} is not interested in buying items.\r\n`);
   }
 }
-export function handleFishCommand(gameManager: GameManager, player: Player) {
+export function handleFishCommand(gameManager: GameManager, player: Player, args: string[]) {
   const currentRoom = gameManager.rooms.get(player.currentRoom);
-  const items = gameManager.items;
-  const silverfish = items.get(5);
-  const goldfish = items.get(6);
+  if (args.length === 0) {
+      player.socket.write('Fish what?\r\n');
+      return;
+  }
 
-  if (!silverfish || !goldfish) {
-    console.error('Silverfish or Goldfish is not defined!');
-    player.socket.write("There seems to be an error, please try again later.\r\n");
+  const resourceCommand = args.join(' ').toLowerCase();
+  const matchedResource = currentRoom?.resources.find(resource => resource.name.toLowerCase() === resourceCommand);
+  if (!matchedResource) {
+      player.socket.write(`Could not find ${resourceCommand} here.\r\n`);
+      return;
+  }
+
+  const fishingSkill = player.lifeSkills.find(skill => skill.name.toLowerCase() === 'fishing');
+  if (!fishingSkill || fishingSkill.level < matchedResource.level) {
+    player.socket.write("You need a higher fishing skill to fish here!\r\n");
     return;
   }
-  // TODO: should handle fishing room better (not straight id)
-  if (currentRoom?.id !== 'area1_room7') {
-      player.socket.write("You can't fish here!\r\n");
-      return;
-  }
-  if (!player.inventory.findItem('rod')) { // Check if player has the fishing rod
-      player.socket.write("You need a fishing rod to fish!\r\n");
-      return;
-  }
+  const fishingRod = player.inventory.findItem('rod');
+  if (!fishingRod) { 
+    player.socket.write("You need a fishing rod to fish!\r\n"); 
+    return; 
+  } 
+
   player.socket.write(`${AC.LightBlue}You cast your line into the ${AC.Blue}water${AC.Reset}...\r\n`);
   setTimeout(() => {
-    const chance = Math.random();
-    if (chance < 0.3) {
-        player.socket.write("You didn't catch anything this time.\r\n");
-    } else if (chance < 0.4) {  // 10% chance for goldfish
-        player.inventory.addItem(goldfish);
-        player.socket.write(`You caught a ${AC.Yellow}Goldfish!${AC.Reset}\r\n`);
-    } else {  // 60% chance for silverfish
-        player.inventory.addItem(silverfish);
-        player.socket.write(`You caught a ${AC.DarkGray}Silverfish${AC.Reset}!\r\n`);
+    if (!matchedResource?.dropTable) {
+      player.socket.write("You didn't catch anything this time.\r\n");
+      return;
     }
-  }, 3000);  // 3000 milliseconds = 3 seconds
+
+    const totalChance = matchedResource.dropTable.reduce((sum, item) => sum + item.chance, 0);
+    let randomChance = Math.random() * totalChance;
+    const dropTableSorted = matchedResource.dropTable.sort((a, b) => a.chance - b.chance);
+
+    let dropItem;
+    for (const item of dropTableSorted) {
+      randomChance -= item.chance;
+      if (randomChance <= 0) {
+        dropItem = item;
+        break;
+      }
+    }
+
+    if (!dropItem || !dropItem.item) {
+      player.socket.write("You didn't catch anything this time.\r\n");
+    } else {
+      player.inventory.addItem(dropItem.item);
+      player.socket.write(`You caught a ${dropItem.item.name}!\r\n`);
+      player.gainLifeSkillExperience('Fishing', 5);
+    }
+  }, 3000);
+}
+export function handleMineCommand(gameManager: GameManager, player: Player, args: string[]) {
+  const currentRoom = gameManager.rooms.get(player.currentRoom);
+  if (args.length === 0) {
+      player.socket.write('Mine what?\r\n');
+      return;
+  }
+
+  const resourceCommand = args.join(' ').toLowerCase();
+  const matchedResource = currentRoom?.resources.find(resource => resource.name.toLowerCase() === resourceCommand);
+  if (!matchedResource) {
+      player.socket.write(`Could not find ${resourceCommand} here.\r\n`);
+      return;
+  }
+
+  const miningSkill = player.lifeSkills.find(skill => skill.name.toLowerCase() === 'mining');
+  if (!miningSkill || miningSkill.level < matchedResource.level) {
+    player.socket.write("You need a higher Mining skill to mine here!\r\n");
+    return;
+  }
+
+  const pickaxe = player.inventory.findItem('pickaxe');
+  if (!pickaxe) { 
+    player.socket.write("You need a pickaxe to mine!\r\n"); 
+    return; 
+  } 
+
+  player.socket.write(`${AC.LightBlue}You swing your pickaxe at the ${AC.Blue}ore${AC.Reset}...\r\n`);
+  setTimeout(() => {
+    if (!matchedResource?.dropTable) {
+      player.socket.write("You didn't find anything this time.\r\n");
+      return;
+    }
+  
+    const totalChance = matchedResource.dropTable.reduce((sum, item) => sum + item.chance, 0);
+    let randomChance = Math.random() * totalChance;
+    const dropTableSorted = matchedResource.dropTable.sort((a, b) => a.chance - b.chance);
+  
+    let dropItem;
+    for (const item of dropTableSorted) {
+      randomChance -= item.chance;
+      if (randomChance <= 0) {
+        dropItem = item;
+        break;
+      }
+    }
+  
+    if (!dropItem || !dropItem.item) {
+      player.socket.write("You didn't find anything this time.\r\n");
+    } else {
+      player.inventory.addItem(dropItem.item);
+      player.socket.write(`You mined ${dropItem.item.name}!\r\n`);
+      player.gainLifeSkillExperience('Mining', 5);
+    }
+  }, 3000);
+}
+export function handleChopCommand(gameManager: GameManager, player: Player, args: string[]) {
+  const currentRoom = gameManager.rooms.get(player.currentRoom);
+  if (args.length === 0) {
+      player.socket.write('Chop what?\r\n');
+      return;
+  }
+
+  const resourceCommand = args.join(' ').toLowerCase();
+  const matchedResource = currentRoom?.resources.find(resource => resource.name.toLowerCase() === resourceCommand);
+  if (!matchedResource) {
+      player.socket.write(`Could not find ${resourceCommand} here.\r\n`);
+      return;
+  }
+
+  const woodcuttingSkill = player.lifeSkills.find(skill => skill.name.toLowerCase() === 'mining');
+  if (!woodcuttingSkill || woodcuttingSkill.level < matchedResource.level) {
+    player.socket.write("You need a higher Woodcutting skill to chop here!\r\n");
+    return;
+  }
+
+  const hatchet = player.inventory.findItem('hatchet');
+  if (!hatchet) { 
+    player.socket.write("You need a hatchet to chop!\r\n"); 
+    return; 
+  } 
+
+  player.socket.write(`${AC.LightBlue}You swing your axe at the ${AC.Blue}tree${AC.Reset}...\r\n`);
+  setTimeout(() => {
+    if (!matchedResource?.dropTable) {
+      player.socket.write("You didn't find anything this time.\r\n");
+      return;
+    }
+  
+    const totalChance = matchedResource.dropTable.reduce((sum, item) => sum + item.chance, 0);
+    let randomChance = Math.random() * totalChance;
+    const dropTableSorted = matchedResource.dropTable.sort((a, b) => a.chance - b.chance);
+  
+    let dropItem;
+    for (const item of dropTableSorted) {
+      randomChance -= item.chance;
+      if (randomChance <= 0) {
+        dropItem = item;
+        break;
+      }
+    }
+  
+    if (!dropItem || !dropItem.item) {
+      player.socket.write("You didn't find anything this time.\r\n");
+    } else {
+      player.inventory.addItem(dropItem.item);
+      player.socket.write(`You chopped a ${dropItem.item.name}!\r\n`);
+      player.gainLifeSkillExperience('Woodcutting', 5);
+    }
+  }, 3000);
+}
+
+export function handleReloadCommand(gameManager: GameManager, player: Player, args: string[]) {
+  if (!player.isAdmin) {
+    player.socket.write('Unknown command.\r\n');
+    return;
+  }
+  else {
+    player.socket.write(`${player}: Reloading...\r\n`);
+    gameManager.reload();
+    player.socket.write(`${player}: Reloaded.\r\n`);
+  }
+}
+
+export function handleQuestCommand() {
+  // TODO: implement
 }

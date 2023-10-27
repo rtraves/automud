@@ -17,6 +17,15 @@ rooms:
       You're surrounded by vibrant flowers and the soft hum of bees. A serene pond lies to the north, while a
       cobblestone path leads west back to the academy entrance and east to a training ground. A fountain bubbles
       softly in the center of the garden. A plaque reads: 'Drink from the fountain to restore your health.'
+    npcIds: [
+        3
+      ]
+    itemIds: [
+        5 # Simple Hatchet
+      ]
+    resources:
+      - resourceType: woodcutting
+        name: tree
     exits:
       - direction: west
         roomId: area1_room1
@@ -33,6 +42,14 @@ rooms:
       1, # Goblin
       2 # Shopkeeper
     ]
+    itemIds: [
+        4 # Simple Pickaxe
+      ]
+    resources:
+      - resourceType: mining
+        name: bronze ore
+      - resourceType: mining
+        name: iron ore
     exits:
       - direction: west
         roomId: area1_room2
@@ -76,6 +93,12 @@ rooms:
     title: Pond's Edge
     description: |
       The calm waters of the pond reflect the sky. It's a peaceful spot, perfect for reflection. You spot small fish in the clear pool.
+    itemIds: [
+        6 # Simple Fishing Rod
+      ]
+    resources:
+      - resourceType: fishing
+        name: pond
     exits:
       - direction: south
         roomId: area1_room2
@@ -124,3 +147,14 @@ npcs:
         cost: 10
       - itemId: 4 # Simple Fishing Rod
         cost: 50
+  - id: 3
+    name: Old Fisherman
+    description: A friendly fisherman who needs your help.
+    lookDescription: The old man is dressed is a long, flowing robe. He has a long, white beard.
+    isEnemy: false
+    maxHealth: 100
+    questGiver: true
+    onEnterSpeak: "Hello adventurer, I have a quest for you! Type `quest` to see what I need."
+    health: 100
+    damage: 10
+    respawnTime: 1000

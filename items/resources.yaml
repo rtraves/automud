@@ -1,0 +1,58 @@
+resources:
+  - resourceType: fishing
+    name: pond
+    description: A small pond with clear water.
+    quantity: 10
+    level: 1
+    dropTable:
+      - itemId: 7
+        chance: 0.8
+      - itemId: 8
+        chance: 0.2
+
+  - resourceType: fishing
+    name: river
+    description: A river with clear water.
+    quantity: 10
+    level: 1
+    dropTable:
+      - itemId: 9
+        chance: 0.8
+      - itemId: 10
+        chance: 0.2
+
+  - resourceType: mining
+    name: bronze ore
+    description: A common ore.
+    quantity: 10
+    level: 1
+    dropTable:
+      - itemId: 11
+        chance: 1.0
+
+  - resourceType: mining
+    name: iron ore
+    description: A common ore.
+    quantity: 10
+    level: 1
+    dropTable:
+      - itemId: 12
+        chance: 1.0
+
+  - resourceType: woodcutting
+    name: tree
+    description: A common tree.
+    quantity: 10
+    level: 1
+    dropTable:
+      - itemId: 13
+        chance: 1.0
+
+  - resourceType: woodcutting
+    name: oak tree
+    description: A common tree.
+    quantity: 10
+    level: 1
+    dropTable:
+      - itemId: 14
+        chance: 1.0

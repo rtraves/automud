@@ -11,6 +11,8 @@ import { broadcastToRoom, broadcastToAll } from './broadcast-utils';
 import { Session } from './session';
 import * as commands from './commands';
 import { NPC } from './npc';
+import { Resource } from './resource';
+import { loadResources } from './resource-manager';
 import { resolveCombat } from './combat';
 
 export class GameManager {
@@ -18,12 +20,14 @@ export class GameManager {
   players: Map<string, Player>;
   rooms: Map<string, Room>;
   items: Map<number, Item>;
+  resources: Map<string, Resource[]>;
   sessions: Map<string, Session>;
 
   private constructor() {
     this.players = new Map();
     this.rooms = new Map();
     this.items = new Map();
+    this.resources = new Map();
     this.sessions = new Map();
   }
 
@@ -42,8 +46,11 @@ export class GameManager {
       this.items.set(itemId, item);
     }
 
+    const resourcePath = path.join(__dirname, '..', 'items', 'resources.yaml');
+    this.resources = loadResources(resourcePath, this.items);
+
     const areaPath = path.join(__dirname, '..', 'areas', 'area1.yaml');
-    const areaRooms = loadArea(areaPath, this.items);
+    const areaRooms = loadArea(areaPath, this.items, this.resources);
 
     for (const [roomId, room] of areaRooms.entries()) {
       this.rooms.set(roomId, room);
@@ -58,6 +65,32 @@ export class GameManager {
     setInterval(() => {
       this.saveTick();
     }, 120000);
+  }
+
+  reload() {
+    this.rooms.clear();
+    this.items.clear();
+
+    const itemPath = path.join(__dirname, '..', 'items', 'items.yaml');
+    const itemData = loadItems(itemPath);
+
+    for (const [itemId, item] of itemData.entries()) {
+      this.items.set(itemId, item);
+    }
+
+    const areaPath = path.join(__dirname, '..', 'areas', 'area1.yaml');
+    const areaRooms = loadArea(areaPath, this.items, this.resources);
+
+    for (const [roomId, room] of areaRooms.entries()) {
+      this.rooms.set(roomId, room);
+    }
+
+    for (const player of this.players.values()) {
+      player.inventory.items.forEach((items, itemName) => {
+        const updatedItems = items.map(item => this.items.get(item.id) || item);
+        player.inventory.items.set(itemName, updatedItems);
+      });
+    }
   }
 
   stop() {}
@@ -141,6 +174,9 @@ export class GameManager {
       case CommandName.Goto:
         commands.gotoCommand(this, player, command.args);
         break;
+      case CommandName.Reload:
+        commands.handleReloadCommand(this, player, command.args);
+        break;
       case CommandName.Drink:
         commands.handleDrinkCommand(this, player, command.args);
         break;
@@ -154,7 +190,13 @@ export class GameManager {
         commands.handleSellCommand(this, player, command.args);
         break;
       case CommandName.Fish:
-        commands.handleFishCommand(this, player);
+        commands.handleFishCommand(this, player, command.args);
+        break;
+      case CommandName.Chop:
+        commands.handleChopCommand(this, player, command.args);
+        break;
+      case CommandName.Mine:
+        commands.handleMineCommand(this, player, command.args);
         break;
       default:
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');

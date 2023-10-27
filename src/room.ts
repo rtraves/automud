@@ -1,5 +1,7 @@
 import { Item } from "./item";
+import { Resource } from "./resource";
 import { NPC, NPCData } from "./npc";
+import { Player } from "./player";
 
 export interface Exit {
     direction: string;
@@ -13,14 +15,16 @@ export interface Exit {
     exits: Exit[];
     items: Item[];
     npcs: NPC[];
-  
-    constructor(id: string, title: string, description: string, exits: Exit[], items: Item[], npcData: NPCData[], itemMap: Map<number, Item>) {
+    resources: Resource[];
+
+    constructor(id: string, title: string, description: string, exits: Exit[], items: Item[], npcData: NPCData[], itemMap: Map<number, Item>, reasources: Resource[]) {
       this.id = id;
       this.title = title;
       this.description = description;
       this.exits = exits;
       this.items = items || [];
       this.npcs = npcData ? npcData.map((data) => new NPC(data, itemMap, this)) : [];
+      this.resources = reasources;
     }
   
     addExit(exit: Exit): void {
@@ -46,5 +50,11 @@ export interface Exit {
         this.items.splice(itemIndex, 1);
       }
     }
+    onPlayerEnter(player: Player): void {
+      // Notify each NPC in the room that a player has entered
+      for (const npc of this.npcs) {
+          npc.onPlayerEnter(player);
+      }
+  }
   }
   

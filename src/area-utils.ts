@@ -4,6 +4,7 @@ import yaml from 'js-yaml';
 import { Item } from './item';
 import { findItemById } from './item-manager';
 import { NPC, NPCData } from './npc';
+import { Resource } from './resource';
 
 interface AreaData {
   npcs: NPCData[];
@@ -16,10 +17,11 @@ interface AreaData {
     items: Item[];
     npcIds: number[];
     npcs: NPCData[];
+    resources: Resource[];
   }[];
 }
 
-export function loadArea(areaPath: string, itemMap: Map<number, Item>): Map<string, Room> {
+export function loadArea(areaPath: string, itemMap: Map<number, Item>, resourceMap: Map<string, Resource[]>): Map<string, Room> {
   const areaFile = fs.readFileSync(areaPath, 'utf-8');
   const areaData = yaml.load(areaFile) as AreaData;
 
@@ -31,6 +33,19 @@ export function loadArea(areaPath: string, itemMap: Map<number, Item>): Map<stri
   }
 
   for (const roomData of areaData.rooms) {
+    const matchedResources: Resource[] = [];
+
+    for (const resource of roomData.resources || []) {
+      const resourcesOfType = resourceMap.get(resource.resourceType);
+      if (resourcesOfType) {
+        const resourceData = resourcesOfType.find(r => r.name === resource.name);
+        if (resourceData) {
+          matchedResources.push(resourceData);
+        }
+      }
+    }
+    roomData.resources = matchedResources;
+
     if (roomData.npcIds) {
       if (!roomData.npcs) {
         roomData.npcs = [];
@@ -53,7 +68,7 @@ export function loadArea(areaPath: string, itemMap: Map<number, Item>): Map<stri
       }
     }
 
-    const room = new Room(roomData.id, roomData.title, roomData.description, roomData.exits as Exit[], roomData.items, roomData.npcs, itemMap);
+    const room = new Room(roomData.id, roomData.title, roomData.description, roomData.exits as Exit[], roomData.items, roomData.npcs, itemMap, roomData.resources);
     areaRooms.set(room.id, room);
   }
 
