@@ -40,32 +40,38 @@ export class GameManager {
   }
 
   start() {
+    this.loadItems();
+    this.loadResources();
+    this.loadRooms();
+    this.initTimers();
+  }
+
+  private loadItems() {
     const itemPath = path.join(__dirname, '..', 'items', 'items.yaml');
     const itemData = loadItems(itemPath);
-
     for (const [itemId, item] of itemData.entries()) {
       this.items.set(itemId, item);
     }
+  }
 
+  private loadResources() {
     const resourcePath = path.join(__dirname, '..', 'items', 'resources.yaml');
     this.resources = loadResources(resourcePath, this.items);
+  }
 
+  private loadRooms() {
     const areaPath = path.join(__dirname, '..', 'areas', 'area1.yaml');
     const areaRooms = loadArea(areaPath, this.items, this.resources);
-
     for (const [roomId, room] of areaRooms.entries()) {
       this.rooms.set(roomId, room);
     }
+  }
 
-    // set combat tick
-    setInterval(() => {
-      this.combatTick();
-    }, 1000);
-
-    // set save tick
-    setInterval(() => {
-      this.saveTick();
-    }, 120000);
+  private initTimers() {
+    // set combat tick 1 second
+    setInterval(() => this.combatTick(), 1000);
+    // set save tick 2 minutes
+    setInterval(() => this.saveTick(), 120000);
   }
 
   startCommandAutomation(player: Player, command: Command, args: string[], delay: number) {
