@@ -22,6 +22,7 @@ export class GameManager {
   items: Map<number, Item>;
   resources: Map<string, Resource[]>;
   sessions: Map<string, Session>;
+  commandTimeouts: Map<string, NodeJS.Timeout> = new Map();
 
   private constructor() {
     this.players = new Map();
@@ -65,6 +66,26 @@ export class GameManager {
     setInterval(() => {
       this.saveTick();
     }, 120000);
+  }
+
+  startCommandAutomation(player: Player, command: Command, args: string[], delay: number) {
+    // clear existing
+    const existingCommandTimeout = this.commandTimeouts.get(player.name);
+    if (existingCommandTimeout) {
+      clearTimeout(existingCommandTimeout);
+    }
+    // start new timeout
+    const timeout = setTimeout(() => this.handleCommand(player, command), delay);
+    this.commandTimeouts.set(player.name, timeout);
+  }
+
+  stopCommandAutomation(player: Player) {
+    // Clear the timeout for this player
+    const timeout = this.commandTimeouts.get(player.id);
+    if (timeout) {
+      clearTimeout(timeout);
+      this.commandTimeouts.delete(player.id);
+    }
   }
 
   reload() {

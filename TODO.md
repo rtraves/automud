@@ -1,4 +1,14 @@
 weird bugs: 
-
-- when selling if i keep selling an item i get to player.socket.write(`${npcInRoom.name} is not interested in buying items.\r\n`); even though there are no more items
+- start with fishing only
 - can spam actions
+    - actions will be automated 
+    - when action performed set autoState
+    - until stop command action will perform 
+    - if another action command is recieved change action
+    - proccess other commands normally
+
+
+
+DONE: setup game manager automation methods and map
+next step - add logic into the handlecommand to work with these functions
+
