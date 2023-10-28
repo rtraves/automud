@@ -65,6 +65,7 @@ export class GameManager {
     // set save tick
     setInterval(() => {
       this.saveTick();
+      console.log(this.commandTimeouts);
     }, 120000);
   }
 
@@ -73,6 +74,7 @@ export class GameManager {
     const existingCommandTimeout = this.commandTimeouts.get(player.name);
     if (existingCommandTimeout) {
       clearTimeout(existingCommandTimeout);
+      this.commandTimeouts.delete(player.name);
     }
     // start new timeout
     const timeout = setTimeout(() => this.handleCommand(player, command), delay);
@@ -81,10 +83,10 @@ export class GameManager {
 
   stopCommandAutomation(player: Player) {
     // Clear the timeout for this player
-    const timeout = this.commandTimeouts.get(player.id);
+    const timeout = this.commandTimeouts.get(player.name);
     if (timeout) {
       clearTimeout(timeout);
-      this.commandTimeouts.delete(player.id);
+      this.commandTimeouts.delete(player.name);
     }
   }
 
@@ -145,6 +147,7 @@ export class GameManager {
   handleCommand(player: Player, command: Command) {
     switch (command.name) {
       case CommandName.Move:
+        this.stopCommandAutomation(player);
         commands.handleMoveCommand(this, player, command);
         break;
       case CommandName.Kill:
@@ -155,6 +158,7 @@ export class GameManager {
         commands.handleLookCommand(player,room, command.args);
         break;
       case CommandName.Quit:
+        this.commandTimeouts.delete(player.name);
         player.save();
         player.socket.write('Goodbye!\r\n');
         player.socket.end();
@@ -193,6 +197,7 @@ export class GameManager {
         commands.handleRestoreCommand(this, player, command.args);
         break;
       case CommandName.Goto:
+        this.commandTimeouts.delete(player.name);
         commands.gotoCommand(this, player, command.args);
         break;
       case CommandName.Reload:
@@ -211,7 +216,7 @@ export class GameManager {
         commands.handleSellCommand(this, player, command.args);
         break;
       case CommandName.Fish:
-        commands.handleFishCommand(this, player, command.args);
+        commands.handleFishCommand(this, player, command.args, command);
         break;
       case CommandName.Chop:
         commands.handleChopCommand(this, player, command.args);

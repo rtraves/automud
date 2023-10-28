@@ -10,5 +10,6 @@ weird bugs:
 
 
 DONE: setup game manager automation methods and map
-next step - add logic into the handlecommand to work with these functions
-
+DONE: add logic into the handlecommand to work with these functions
+Next: stop cauto command on player quit and dc 
+Next: create a stop auto command 
