@@ -6,18 +6,6 @@ import { broadcastToRoom } from './broadcast-utils';
 import { Room } from './room';
 import { AC, colorize } from './ansi-colors';
 import { effectHandlers } from './effects';
-import { Item } from './item';
-import { findItemById } from './item-manager';
-
-
-// TODO: maybe split into something like
-//   commands/
-// │
-// ├── movement.ts
-// ├── combat.ts
-// ├── inventory.ts
-// ├── misc.ts
-// └── admin.ts
 
 export function handleMoveCommand(gameManager: GameManager, player: Player, command: Command) {
   const currentRoom = gameManager.rooms.get(player.currentRoom);

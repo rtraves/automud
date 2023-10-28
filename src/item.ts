@@ -21,5 +21,5 @@ export class Item {
     this.useCommand = useCommand;
     this.useDescription = useDescription;
     this.effect = effect;
-}
+	}
 }

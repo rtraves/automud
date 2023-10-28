@@ -1,9 +1,7 @@
 // Purpose: Combat-related functions maybe turn into a manager later
 import { Player } from './player';
 import { NPC } from './npc';
-import { GameManager } from './game-manager';
-import { broadcastToRoom } from './broadcast-utils';
-import { AC, colorize } from './ansi-colors';
+import { AC } from './ansi-colors';
 
 export function resolveCombat(attacker: Player, defender: NPC) {
   const damage = attacker.damage;

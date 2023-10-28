@@ -13,3 +13,7 @@ export function broadcastToAll(message: string, players: Map<string, Player>, se
     otherPlayer.socket.write(message);
   }
 }
+
+export function sendToPlayer(player: Player, message: string) {
+  player.socket.write(message);
+}

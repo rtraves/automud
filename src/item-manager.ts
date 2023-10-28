@@ -1,5 +1,4 @@
 import * as fs from 'fs';
-import { Room, Exit } from './room';
 import yaml from 'js-yaml';
 import { Item } from './item';
 

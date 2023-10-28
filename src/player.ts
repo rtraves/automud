@@ -5,6 +5,7 @@ import * as path from 'path';
 import { Item } from './item';
 import { NPC } from './npc';
 import { AC, colorize } from './ansi-colors';
+import { QuestObjective, QuestReward } from './quest';
 
 const playersDataPath = path.join(__dirname, '..', 'data', 'players');
 
