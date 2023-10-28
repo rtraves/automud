@@ -24,6 +24,7 @@ export interface Command {
     Fish = 'fish',
     Mine = 'mine',
     Chop = 'chop',
+    Stop = 'stop',
     Reload = 'reload', // Admin
     Restore = 'restore', // Admin
     Goto = 'goto', // Admin
@@ -115,6 +116,8 @@ export interface Command {
         return { name: CommandName.Mine, args};
       case 'chop':
         return { name: CommandName.Chop, args};
+      case 'stop':
+        return { name: CommandName.Stop, args: ['stop'] };
       default:
         return { name: '', args: [] };
     }

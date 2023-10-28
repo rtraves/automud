@@ -22,6 +22,7 @@ export class GameManager {
   items: Map<number, Item>;
   resources: Map<string, Resource[]>;
   sessions: Map<string, Session>;
+  commandTimeouts: Map<string, NodeJS.Timeout> = new Map();
 
   private constructor() {
     this.players = new Map();
@@ -67,9 +68,31 @@ export class GameManager {
     }, 120000);
   }
 
+  startCommandAutomation(player: Player, command: Command, args: string[], delay: number) {
+    // clear existing
+    const existingCommandTimeout = this.commandTimeouts.get(player.name);
+    if (existingCommandTimeout) {
+      clearTimeout(existingCommandTimeout);
+      this.commandTimeouts.delete(player.name);
+    }
+    // start new timeout
+    const timeout = setTimeout(() => this.handleCommand(player, command), delay);
+    this.commandTimeouts.set(player.name, timeout);
+  }
+
+  stopCommandAutomation(player: Player) {
+    // Clear the timeout for this player
+    const timeout = this.commandTimeouts.get(player.name);
+    if (timeout) {
+      clearTimeout(timeout);
+      this.commandTimeouts.delete(player.name);
+    }
+  }
+
   reload() {
     this.rooms.clear();
     this.items.clear();
+    this.commandTimeouts.clear();
 
     const itemPath = path.join(__dirname, '..', 'items', 'items.yaml');
     const itemData = loadItems(itemPath);
@@ -124,6 +147,7 @@ export class GameManager {
   handleCommand(player: Player, command: Command) {
     switch (command.name) {
       case CommandName.Move:
+        this.stopCommandAutomation(player);
         commands.handleMoveCommand(this, player, command);
         break;
       case CommandName.Kill:
@@ -134,6 +158,7 @@ export class GameManager {
         commands.handleLookCommand(player,room, command.args);
         break;
       case CommandName.Quit:
+        this.commandTimeouts.delete(player.name);
         player.save();
         player.socket.write('Goodbye!\r\n');
         player.socket.end();
@@ -172,6 +197,7 @@ export class GameManager {
         commands.handleRestoreCommand(this, player, command.args);
         break;
       case CommandName.Goto:
+        this.commandTimeouts.delete(player.name);
         commands.gotoCommand(this, player, command.args);
         break;
       case CommandName.Reload:
@@ -190,13 +216,16 @@ export class GameManager {
         commands.handleSellCommand(this, player, command.args);
         break;
       case CommandName.Fish:
-        commands.handleFishCommand(this, player, command.args);
+        commands.handleFishCommand(this, player, command.args, command);
         break;
       case CommandName.Chop:
         commands.handleChopCommand(this, player, command.args);
         break;
       case CommandName.Mine:
         commands.handleMineCommand(this, player, command.args);
+        break;
+      case CommandName.Stop:
+        this.stopCommandAutomation(player);
         break;
       default:
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
