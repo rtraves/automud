@@ -216,13 +216,13 @@ export class GameManager {
         commands.handleSellCommand(this, player, command.args);
         break;
       case CommandName.Fish:
-        commands.handleFishCommand(this, player, command.args, command);
+        commands.handleFishCommand(this, player, command, command.args);
         break;
       case CommandName.Chop:
-        commands.handleChopCommand(this, player, command.args);
+        commands.handleChopCommand(this, player, command, command.args);
         break;
       case CommandName.Mine:
-        commands.handleMineCommand(this, player, command.args);
+        commands.handleMineCommand(this, player, command, command.args);
         break;
       case CommandName.Stop:
         this.stopCommandAutomation(player);

@@ -317,7 +317,7 @@ export function handleSellCommand(gameManager: GameManager, player: Player, args
       player.socket.write(`${npcInRoom.name} is not interested in buying items.\r\n`);
   }
 }
-export function handleFishCommand(gameManager: GameManager, player: Player, args: string[], command: Command) {
+export function handleFishCommand(gameManager: GameManager, player: Player, command: Command, args: string[]) {
   const currentRoom = gameManager.rooms.get(player.currentRoom);
   if (args.length === 0) {
       player.socket.write('Fish what?\r\n');
@@ -373,7 +373,7 @@ export function handleFishCommand(gameManager: GameManager, player: Player, args
 
   gameManager.startCommandAutomation(player, command, args, 5000);
 }
-export function handleMineCommand(gameManager: GameManager, player: Player, args: string[]) {
+export function handleMineCommand(gameManager: GameManager, player: Player, command: Command, args: string[]) {
   const currentRoom = gameManager.rooms.get(player.currentRoom);
   if (args.length === 0) {
       player.socket.write('Mine what?\r\n');
@@ -427,8 +427,9 @@ export function handleMineCommand(gameManager: GameManager, player: Player, args
       player.gainLifeSkillExperience('Mining', 5);
     }
   }, 3000);
+  gameManager.startCommandAutomation(player, command, args, 5000);
 }
-export function handleChopCommand(gameManager: GameManager, player: Player, args: string[]) {
+export function handleChopCommand(gameManager: GameManager, player: Player, command: Command, args: string[]) {
   const currentRoom = gameManager.rooms.get(player.currentRoom);
   if (args.length === 0) {
       player.socket.write('Chop what?\r\n');
@@ -482,6 +483,7 @@ export function handleChopCommand(gameManager: GameManager, player: Player, args
       player.gainLifeSkillExperience('Woodcutting', 5);
     }
   }, 3000);
+  gameManager.startCommandAutomation(player, command, args, 5000);
 }
 
 export function handleReloadCommand(gameManager: GameManager, player: Player, args: string[]) {
