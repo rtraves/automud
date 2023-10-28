@@ -38,6 +38,7 @@ const server = net.createServer((socket) => {
   socket.on('end', () => {
     if (sessionOrPlayer instanceof Player) {
       console.log(`A user (${sessionOrPlayer.name}) disconnected`);
+      gameManager.commandTimeouts.delete(sessionOrPlayer.name);
       gameManager.players.delete(sessionOrPlayer.id);
     } else {
       console.log('A user disconnected before logging in.');

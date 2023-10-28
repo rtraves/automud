@@ -65,7 +65,6 @@ export class GameManager {
     // set save tick
     setInterval(() => {
       this.saveTick();
-      console.log(this.commandTimeouts);
     }, 120000);
   }
 
@@ -93,6 +92,7 @@ export class GameManager {
   reload() {
     this.rooms.clear();
     this.items.clear();
+    this.commandTimeouts.clear();
 
     const itemPath = path.join(__dirname, '..', 'items', 'items.yaml');
     const itemData = loadItems(itemPath);
@@ -223,6 +223,9 @@ export class GameManager {
         break;
       case CommandName.Mine:
         commands.handleMineCommand(this, player, command.args);
+        break;
+      case CommandName.Stop:
+        this.stopCommandAutomation(player);
         break;
       default:
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
