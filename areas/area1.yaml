@@ -10,6 +10,9 @@ rooms:
     exits:
       - direction: east
         roomId: area1_room2
+    specialExits:
+      - name: portal
+        roomId: mage_tower
 
   - id: area1_room2
     title: Academy Garden
@@ -111,6 +114,15 @@ rooms:
     exits:
       - direction: down
         roomId: area1_room4
+
+  - id: mage_tower
+    title: Mage's Tower
+    description: |
+      A place where magic users come to hone their craft. The air is thick with arcane energy.
+      A portal to the east shimmers mysteriously.
+    specialExits:
+      - name: portal
+        roomId: area1_room1
 
 
 npcs:
