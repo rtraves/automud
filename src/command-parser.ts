@@ -5,6 +5,7 @@ export interface Command {
   
   export enum CommandName {
     Move = 'move',
+    Enter = 'enter',
     Look = 'look',
     Quit = 'quit',
     Say = 'say',
@@ -65,6 +66,8 @@ export interface Command {
       case 'd':
       case 'down':
         return { name: CommandName.Move, args: [name.charAt(0)] };
+      case 'enter':
+        return { name: CommandName.Enter, args };
       case 'k':
       case 'kill':
         return { name: CommandName.Kill, args };

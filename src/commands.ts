@@ -35,6 +35,36 @@ export function handleMoveCommand(gameManager: GameManager, player: Player, comm
   newRoom.onPlayerEnter(player);
 }
 
+export function handleEnterCommand(gameManager: GameManager, player: Player, args: string[]) {
+  if (args.length === 0) {
+    player.socket.write('Enter what?\r\n');
+    return;
+  }
+
+  const target = args.join(' ').toLowerCase();
+  const room = gameManager.rooms.get(player.currentRoom);
+  const specialExit = room?.specialExits?.find((exit) => exit.name.toLowerCase() === target);
+
+  if (specialExit) {
+    const newRoom = gameManager.rooms.get(specialExit.roomId);
+    if (!newRoom) {
+      player.socket.write(`Error: Room ${specialExit.roomId} not found.\r\n`);
+      return;
+    }
+
+    broadcastToRoom(`${player.name} leaves through ${specialExit.name}.\r\n`, player, gameManager.players);
+    player.currentRoom = newRoom.id;
+    broadcastToRoom(`${player.name} has arrived.\r\n`, player, gameManager.players);
+    handleLookCommand(player, newRoom);
+    newRoom.onPlayerEnter(player);
+    return;
+  }
+  else {
+    player.socket.write(`You can't use ${target}.\r\n`);
+    return;
+  }
+}
+
 export function handleKillCommand(gameManager: GameManager, player: Player, args: string[]) {
     const targetName = args[0]; // assuming first argument is the name of the NPC or player
     const room = gameManager.rooms.get(player.currentRoom);
@@ -81,12 +111,15 @@ export function handleHelpCommand(player: Player) {
   }
 
 export function handleLookCommand(player: Player, room: Room | undefined, args?: string[]) {
-    // If no specific item is mentioned, show the room description
-    if (!args || args.length === 0) {
-        if (room) {
-            player.socket.write(colorize(`${room.title}\r\n`, AC.Cyan));
-            player.socket.write(colorize(`${room.description}\r\n`, AC.Green));
-            if (room.npcs && room.npcs.length > 0) {
+  // If no specific item is mentioned, show the room description
+  if (!args || args.length === 0) {
+    if (room) {
+      player.socket.write(colorize(`${room.title}\r\n`, AC.Cyan));
+      const hiddenSpecialExits = room.specialExits?.filter((specialExit) => specialExit.hidden);
+      const hiddenSpecialExitsDescriptions = hiddenSpecialExits?.map((specialExit) => specialExit.description).join(', ');
+      player.socket.write(colorize(`${room.description}${hiddenSpecialExitsDescriptions}\r\n`, AC.Green));
+
+      if (room.npcs && room.npcs.length > 0) {
         for (const npc of room.npcs) {
           if (npc.isEnemy) {
             player.socket.write(colorize(`${npc.name}\r\n`, AC.Red));
@@ -96,33 +129,62 @@ export function handleLookCommand(player: Player, room: Room | undefined, args?:
           }
         }
       }
+
       for (const resources of room.resources) {
         player.socket.write(colorize(`${resources.name}\r\n`, AC.Blue));
       }
-      if (room.items && room.items.length > 0) {
-                for (const item of room.items) {
-                    player.socket.write(colorize(`${item.description}\r\n`, AC.Purple));
-                }
-            }
-            const exitStrings = room.exits.map((exit) => `${exit.direction}`);
-            player.socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AC.Yellow));
-        } else {
-            player.socket.write('An error occurred. The current room does not exist.\r\n');
-        }
-    } else {
-        // If a specific item is mentioned, show the item's lookDescription
-        const itemName = args.join(' ').toLowerCase();
-        const itemInInventory = player.inventory.findItem(itemName);
-        const itemInRoom = room?.items.find(item => item.name.toLowerCase() === itemName);
 
-        if (itemInInventory) {
-            player.socket.write(itemInInventory.lookDescription + '\r\n');
-        } else if (itemInRoom) {
-            player.socket.write(itemInRoom.lookDescription + '\r\n');
-        } else {
-            player.socket.write(`You can't find ${itemName} to look at.\r\n`);
+      if (room.items && room.items.length > 0) {
+        for (const item of room.items) {
+          player.socket.write(colorize(`${item.description}\r\n`, AC.Purple));
         }
+      }
+
+      if (room.specialExits) {
+        room.specialExits.forEach((specialExit) => {
+          if (!specialExit.hidden) {
+            player.socket.write(colorize(`${specialExit.description}\r\n`, AC.Purple));
+          }
+        });
+      }
+
+      const exitStrings = room.exits?.map((exit) => `${exit.direction}`);
+      if (exitStrings) {
+        player.socket.write(colorize(`Exits: ${exitStrings.join(', ')}\r\n`, AC.Yellow));
+      }
+    } 
+    else {
+      player.socket.write('An error occurred. The current room does not exist.\r\n');
     }
+  }
+  else if (room?.specialExits) {
+    // If a specific special exit is mentioned, show the special exit's lookDescription
+    const specialExitName = args.join(' ').toLowerCase();
+    const specialExit = room.specialExits.find((specialExit) => specialExit.name.toLowerCase() === specialExitName);
+
+    if (specialExit) {
+      player.socket.write(specialExit.lookDescription + '\r\n');
+    } 
+    else {
+      player.socket.write(`You can't find ${specialExitName} to look at.\r\n`);
+    }
+  }
+  else {
+    // If a specific item is mentioned, show the item's lookDescription
+    const itemName = args.join(' ').toLowerCase();
+    const itemInInventory = player.inventory.findItem(itemName);
+    const itemInRoom = room?.items.find(item => item.name.toLowerCase() === itemName);
+
+    if (itemInInventory) {
+      player.socket.write(itemInInventory.lookDescription + '\r\n');
+    } 
+    else if (itemInRoom) {
+      player.socket.write(itemInRoom.lookDescription + '\r\n');
+    } 
+    else {
+      player.socket.write(`You can't find ${itemName} to look at.\r\n`);
+    }
+  }
 }
 
 export function handleDropCommand(gameManager: GameManager,player: Player, args: string[]) {

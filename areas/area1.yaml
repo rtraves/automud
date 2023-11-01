@@ -11,8 +11,15 @@ rooms:
       - direction: east
         roomId: area1_room2
     specialExits:
+      - name: crack
+        hidden: true
+        description: There is a crack in the floor.
+        lookDescription: The crack is small, but you think you could squeeze through.
+        roomId: mage_tower_test
       - name: portal
-        roomId: mage_tower
+        description: There is a shimmering portal here.
+        lookDescription: The portal is shimmering with arcane energy.
+        roomId: area1_room5
 
   - id: area1_room2
     title: Academy Garden
@@ -78,7 +85,6 @@ rooms:
     title: Mage's Tower
     description: |
       A place where magic users come to hone their craft. The air is thick with arcane energy.
-      A portal to the east shimmers mysteriously.
     exits:
       - direction: east
         roomId: area1_room6
@@ -115,13 +121,15 @@ rooms:
       - direction: down
         roomId: area1_room4
 
-  - id: mage_tower
+  - id: mage_tower_test
     title: Mage's Tower
     description: |
       A place where magic users come to hone their craft. The air is thick with arcane energy.
-      A portal to the east shimmers mysteriously.
     specialExits:
-      - name: portal
+      - name: crack
+        hidden: true
+        description: There is a crack in the floor.
+        lookDescription: The crack is small, but you think you could squeeze through.
         roomId: area1_room1
 
 

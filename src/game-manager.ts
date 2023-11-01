@@ -156,6 +156,10 @@ export class GameManager {
         this.stopCommandAutomation(player);
         commands.handleMoveCommand(this, player, command);
         break;
+      case CommandName.Enter:
+        this.stopCommandAutomation(player);
+        commands.handleEnterCommand(this, player, command.args);
+        break;
       case CommandName.Kill:
         commands.handleKillCommand(this, player, command.args);
         break;
