@@ -4,24 +4,34 @@ import { NPC, NPCData } from "./npc";
 import { Player } from "./player";
 
 export interface Exit {
-    direction: string;
-    roomId: string;
-  }
+  direction: string;
+  roomId: string;
+}
+
+export interface SpecialExit { 
+  name: string;
+  hidden?: boolean;
+  description?: string;
+  lookDescription?: string;
+  roomId: string;
+}
   
   export class Room {
     id: string;
     title: string;
     description: string;
     exits: Exit[];
+    specialExits?: SpecialExit[];
     items: Item[];
     npcs: NPC[];
     resources: Resource[];
 
-    constructor(id: string, title: string, description: string, exits: Exit[], items: Item[], npcData: NPCData[], itemMap: Map<number, Item>, reasources: Resource[]) {
+    constructor(id: string, title: string, description: string, exits: Exit[], specialExits: SpecialExit[] ,items: Item[], npcData: NPCData[], itemMap: Map<number, Item>, reasources: Resource[]) {
       this.id = id;
       this.title = title;
       this.description = description;
       this.exits = exits;
+      this.specialExits = specialExits;
       this.items = items || [];
       this.npcs = npcData ? npcData.map((data) => new NPC(data, itemMap, this)) : [];
       this.resources = reasources;
