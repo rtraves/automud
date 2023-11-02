@@ -117,3 +117,12 @@ items:
     name: Oak Log
     description: A common wooden log.
     value: 5
+
+  - id: 10001
+    name: Test Key
+    description: A key used for testing.
+    lookDescription: A key used for testing.
+    keywords:
+      - key
+      - test key
+    value: 1

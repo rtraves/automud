@@ -236,6 +236,10 @@ export class GameManager {
         break;
       case CommandName.Stop:
         this.stopCommandAutomation(player);
+        this.stopCommandAutomation(player);
+        break;
+      case CommandName.Open:
+        commands.handleOpenCommand(this, player, command);
         break;
       default:
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');

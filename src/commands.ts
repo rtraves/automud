@@ -21,6 +21,13 @@ export function handleMoveCommand(gameManager: GameManager, player: Player, comm
     return;
   }
 
+  if (exit.door) {
+    if (!exit.door.isOpen) {
+      player.socket.write(`The door is closed.\r\n`);
+      return;
+    }
+  }
+
   const newRoom = gameManager.rooms.get(exit.roomId);
 
   if (!newRoom) {
@@ -33,6 +40,42 @@ export function handleMoveCommand(gameManager: GameManager, player: Player, comm
   broadcastToRoom(`${player.name} has arrived.\r\n`, player, gameManager.players);
   handleLookCommand(player, newRoom);
   newRoom.onPlayerEnter(player);
+}
+
+export function handleOpenCommand(gameManager: GameManager, player: Player, command: Command) {
+  const currentRoom = gameManager.rooms.get(player.currentRoom);
+  if (!currentRoom) {
+    player.socket.write(`Error: Current room ${player.currentRoom} not found.\r\n`);
+    return;
+  }
+
+  const exit = findExitByDirection(currentRoom, command.args[0]);
+
+  if (exit && exit.door) {
+    if (exit.door.isOpen) {
+      player.socket.write(`The door is already open.\r\n`);
+      return;
+    }
+    else if (exit.door.isLocked) {
+      if (player.inventory.findItem(exit.door.keyName || '')) {
+        exit.door.isLocked = false;
+        exit.door.isOpen = true;
+        player.socket.write(`You unlock and open the door.\r\n`);
+        broadcastToRoom(`${player.name} unlocks and opens the door.\r\n`, player, gameManager.players);
+        return;
+      }
+      else {
+        player.socket.write(`The door is locked.\r\n`);
+        return;
+      }
+    }
+    else {
+      exit.door.isOpen = true;
+      player.socket.write(`You open the door.\r\n`);
+      broadcastToRoom(`${player.name} opens the door.\r\n`, player, gameManager.players);
+      return;
+    }
+  }
 }
 
 export function handleEnterCommand(gameManager: GameManager, player: Player, args: string[]) {

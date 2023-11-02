@@ -6,6 +6,13 @@ import { Player } from "./player";
 export interface Exit {
   direction: string;
   roomId: string;
+  door?: Door;
+}
+
+export interface Door {
+  isOpen: boolean;
+  isLocked: boolean;
+  keyName?: string;
 }
 
 export interface SpecialExit { 
