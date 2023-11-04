@@ -53,6 +53,7 @@ type LifeSkill = {
 }
 
 type Equipment = {
+  [key: string]: Item | null;
   Head: Item | null;
   Neck: Item | null;
   Chest: Item | null;
@@ -378,5 +379,30 @@ export class Player {
   displayExperienceToNextLifeSkillLevel(name: string): void {
     const expNeeded = this.experienceToNextLifeSkillLevel(name);
     this.socket.write(`Experience needed for next ${name} level: ${expNeeded}\r\n`);
+  }
+
+  equip(item: Item): void {
+    const itemType = item.equipmentType;
+    if (!itemType) {
+      this.socket.write(`${item.name} is not equippable.\r\n`);
+      return;
+    }
+
+    const itemSlot = Object.keys(this.equipment).find((key) => key === itemType);
+    if (itemSlot) {
+      const existingItem = this.equipment[itemSlot];
+      if (existingItem) {
+        this.unequip(existingItem, itemSlot);
+      }
+      this.equipment[itemSlot] = item;
+      this.inventory.removeItem(item.name, 0);
+      this.socket.write(`You equip ${item.name}.\r\n`);
+    }
+  }
+
+  unequip(item: Item, itemSlot: string): void {
+      this.equipment[itemSlot] = null;
+      this.inventory.addItem(item);
+      this.socket.write(`You unequip ${item.name}.\r\n`);
   }
 }
