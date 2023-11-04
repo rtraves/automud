@@ -27,6 +27,7 @@ export interface PlayerData {
   level: number;
   attributes: Attributes;
   lifeSkills: LifeSkill[];
+  equipment: Equipment;
 }
 
 type Attributes = {
@@ -49,6 +50,19 @@ type LifeSkill = {
   name: string;
   level: number;
   experience: number;
+}
+
+type Equipment = {
+  Head: Item | null;
+  Neck: Item | null;
+  Chest: Item | null;
+  Legs: Item | null;
+  Feet: Item | null;
+  Hands: Item | null;
+  RightHand: Item | null;
+  LeftHand: Item | null;
+  Ring1: Item | null;
+  Ring2: Item | null;
 }
 
 export class PlayerInventory {
@@ -132,6 +146,18 @@ export class Player {
       experience: 0
     }
   ];
+  equipment: Equipment = {
+    Head: null,
+    Neck: null,
+    Chest: null,
+    Legs: null,
+    Feet: null,
+    Hands: null,
+    RightHand: null,
+    LeftHand: null,
+    Ring1: null,
+    Ring2: null
+  };
 
   constructor(id: string, currentRoom: string, socket: net.Socket) {
     this.id = id;
@@ -188,7 +214,8 @@ export class Player {
       gold: this.gold,
       level: this.level,
       attributes: this.attributes,
-      lifeSkills: this.lifeSkills
+      lifeSkills: this.lifeSkills,
+      equipment: this.equipment
     };
 
     fs.writeFileSync(`./data/players/${this.name}.json`, JSON.stringify(playerData, null, 4), 'utf-8');
@@ -213,6 +240,7 @@ export class Player {
       this.level = playerData.level;
       this.attributes = playerData.attributes;
       this.lifeSkills = playerData.lifeSkills;
+      this.equipment = playerData.equipment;
     } catch (err) {
       // TODO: Add this to a log file instead of console.error
       console.error(`Failed to load player data for ${this.name}. Error: ${err}`);
