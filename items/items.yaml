@@ -13,10 +13,29 @@ items:
     name: Sword of testing
     description: A sword used for testing.
     lookDescription: A sword used for testing.
+    equipmentType: MainHand
     keywords:
       - sword
       - testing sword
     value: 1
+
+  - id: 99
+    name: Test Helmet
+    description: A helmet used for testing.
+    lookDescription: A helmet used for testing.
+    equipmentType: Head
+    keywords:
+      - helmet
+      - test helmet
+    value: 1
+
+  - id: 100
+    name: Helmet of Doom Test
+    description: A helmet used for testing.
+    lookDescription: A helmet used for testing.
+    equipmentType: Head
+    keywords:
+      - helmet of doom
 
   - id: 3
     name: Small Health Potion

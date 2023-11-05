@@ -27,6 +27,7 @@ export interface PlayerData {
   level: number;
   attributes: Attributes;
   lifeSkills: LifeSkill[];
+  equipment: Equipment;
 }
 
 type Attributes = {
@@ -49,6 +50,19 @@ type LifeSkill = {
   name: string;
   level: number;
   experience: number;
+}
+
+type Equipment = {
+  [key: string]: Item | null;
+  Head: Item | null;
+  Neck: Item | null;
+  Chest: Item | null;
+  Legs: Item | null;
+  Feet: Item | null;
+  Hands: Item | null;
+  MainHand: Item | null;
+  OffHand: Item | null;
+  Ring: Item | null;
 }
 
 export class PlayerInventory {
@@ -132,6 +146,17 @@ export class Player {
       experience: 0
     }
   ];
+  equipment: Equipment = {
+    Head: null,
+    Neck: null,
+    Chest: null,
+    Legs: null,
+    Feet: null,
+    Hands: null,
+    MainHand: null,
+    OffHand: null,
+    Ring: null
+  };
 
   constructor(id: string, currentRoom: string, socket: net.Socket) {
     this.id = id;
@@ -188,7 +213,8 @@ export class Player {
       gold: this.gold,
       level: this.level,
       attributes: this.attributes,
-      lifeSkills: this.lifeSkills
+      lifeSkills: this.lifeSkills,
+      equipment: this.equipment
     };
 
     fs.writeFileSync(`./data/players/${this.name}.json`, JSON.stringify(playerData, null, 4), 'utf-8');
@@ -213,6 +239,7 @@ export class Player {
       this.level = playerData.level;
       this.attributes = playerData.attributes;
       this.lifeSkills = playerData.lifeSkills;
+      this.equipment = playerData.equipment;
     } catch (err) {
       // TODO: Add this to a log file instead of console.error
       console.error(`Failed to load player data for ${this.name}. Error: ${err}`);
@@ -350,5 +377,53 @@ export class Player {
   displayExperienceToNextLifeSkillLevel(name: string): void {
     const expNeeded = this.experienceToNextLifeSkillLevel(name);
     this.socket.write(`Experience needed for next ${name} level: ${expNeeded}\r\n`);
+  }
+
+  equip(item: Item): void {
+    const itemType = item.equipmentType;
+    if (!itemType) {
+      this.socket.write(`${item.name} is not equippable.\r\n`);
+      return;
+    }
+
+    const itemSlot = Object.keys(this.equipment).find((key) => key === itemType);
+    if (itemSlot) {
+      const existingItem = this.equipment[itemSlot];
+      if (existingItem) {
+        this.unequip(existingItem);
+      }
+      this.inventory.removeItem(item.name, 0);
+      this.equipment[itemSlot] = item;
+      this.socket.write(`You equip ${item.name}.\r\n`);
+    }
+  }
+
+  unequip(item: Item): void {
+    const itemType = item.equipmentType;
+    const itemSlot = Object.keys(this.equipment).find((key) => key === itemType);
+
+    if (itemSlot) {
+      const existingItem = this.equipment[itemSlot];
+      if (existingItem && existingItem.name === item.name) {
+        this.equipment[itemSlot] = null;
+        this.inventory.addItem(item);
+        this.socket.write(`You unequip ${item.name}.\r\n`);
+      }
+      else {
+        this.socket.write(`Cannot unequip ${item.name} as it is not equipped.\r\n`);
+      }
+    }
+    else {
+      this.socket.write(`Cannot unequip ${item.name} as it does not match any equipment slot.\r\n`);
+    }
+  }
+
+  findEquippedItem(itemName: string): Item | undefined {
+    const searchTerm = itemName.toLowerCase();
+    const equippedItems = Object.values(this.equipment).filter((item): item is Item => item !== null);
+    return equippedItems.find((item) => 
+        item.name.toLowerCase() === searchTerm || 
+        item.keywords?.includes(searchTerm)
+    );
   }
 }

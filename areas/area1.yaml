@@ -8,7 +8,10 @@ rooms:
       A large wooden sign reads: 'Welcome to Newhaven Academy. Learn, explore, and grow.'
       To the east, you see a pathway leading to a garden.
     itemIds: [
-        10001 # key
+        10001, # key
+        99,
+        100,
+        2
       ]
     exits:
       - direction: east
