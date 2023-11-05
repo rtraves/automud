@@ -401,8 +401,8 @@ export class Player {
   }
 
   unequip(item: Item, itemSlot: string): void {
-      this.equipment[itemSlot] = null;
-      this.inventory.addItem(item);
-      this.socket.write(`You unequip ${item.name}.\r\n`);
+    this.equipment[itemSlot] = null;
+    this.inventory.addItem(item);
+    this.socket.write(`You unequip ${item.name}.\r\n`);
   }
 }
