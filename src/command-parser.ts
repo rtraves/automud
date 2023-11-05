@@ -27,6 +27,10 @@ export interface Command {
     Chop = 'chop',
     Stop = 'stop',
     Open = 'open',
+    Wear = 'wear',
+    Remove = 'remove',
+    Weild = 'weild',
+    Equipment = 'equipment',
     Reload = 'reload', // Admin
     Restore = 'restore', // Admin
     Goto = 'goto', // Admin
@@ -124,6 +128,13 @@ export interface Command {
         return { name: CommandName.Stop, args: ['stop'] };
       case 'open':
         return { name: CommandName.Open, args};
+      case 'wear':
+        return { name: CommandName.Wear, args};
+      case 'remove':
+        return { name: CommandName.Remove, args};
+      case 'equipment':
+      case 'eq':
+        return { name: 'equipment', args };
       default:
         return { name: '', args: [] };
     }

@@ -60,10 +60,9 @@ type Equipment = {
   Legs: Item | null;
   Feet: Item | null;
   Hands: Item | null;
-  RightHand: Item | null;
-  LeftHand: Item | null;
-  Ring1: Item | null;
-  Ring2: Item | null;
+  MainHand: Item | null;
+  OffHand: Item | null;
+  Ring: Item | null;
 }
 
 export class PlayerInventory {
@@ -154,10 +153,9 @@ export class Player {
     Legs: null,
     Feet: null,
     Hands: null,
-    RightHand: null,
-    LeftHand: null,
-    Ring1: null,
-    Ring2: null
+    MainHand: null,
+    OffHand: null,
+    Ring: null
   };
 
   constructor(id: string, currentRoom: string, socket: net.Socket) {
@@ -392,17 +390,40 @@ export class Player {
     if (itemSlot) {
       const existingItem = this.equipment[itemSlot];
       if (existingItem) {
-        this.unequip(existingItem, itemSlot);
+        this.unequip(existingItem);
       }
-      this.equipment[itemSlot] = item;
       this.inventory.removeItem(item.name, 0);
+      this.equipment[itemSlot] = item;
       this.socket.write(`You equip ${item.name}.\r\n`);
     }
   }
 
-  unequip(item: Item, itemSlot: string): void {
-    this.equipment[itemSlot] = null;
-    this.inventory.addItem(item);
-    this.socket.write(`You unequip ${item.name}.\r\n`);
+  unequip(item: Item): void {
+    const itemType = item.equipmentType;
+    const itemSlot = Object.keys(this.equipment).find((key) => key === itemType);
+
+    if (itemSlot) {
+      const existingItem = this.equipment[itemSlot];
+      if (existingItem && existingItem.name === item.name) {
+        this.equipment[itemSlot] = null;
+        this.inventory.addItem(item);
+        this.socket.write(`You unequip ${item.name}.\r\n`);
+      }
+      else {
+        this.socket.write(`Cannot unequip ${item.name} as it is not equipped.\r\n`);
+      }
+    }
+    else {
+      this.socket.write(`Cannot unequip ${item.name} as it does not match any equipment slot.\r\n`);
+    }
+  }
+
+  findEquippedItem(itemName: string): Item | undefined {
+    const searchTerm = itemName.toLowerCase();
+    const equippedItems = Object.values(this.equipment).filter((item): item is Item => item !== null);
+    return equippedItems.find((item) => 
+        item.name.toLowerCase() === searchTerm || 
+        item.keywords?.includes(searchTerm)
+    );
   }
 }

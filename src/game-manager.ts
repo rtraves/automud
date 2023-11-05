@@ -241,6 +241,15 @@ export class GameManager {
       case CommandName.Open:
         commands.handleOpenCommand(this, player, command);
         break;
+      case CommandName.Wear:
+        commands.handleWearCommand(this, player, command.args);
+        break;
+      case CommandName.Remove:
+        commands.handleRemoveCommand(this, player, command.args);
+        break;
+      case CommandName.Equipment:
+        commands.handleEquipmentCommand(player);
+        break;
       default:
         player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
     }

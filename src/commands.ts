@@ -108,6 +108,50 @@ export function handleEnterCommand(gameManager: GameManager, player: Player, arg
   }
 }
 
+export function handleWearCommand(gameManager: GameManager, player: Player, args: string[]) {
+  if (args.length === 0) {
+    player.socket.write('Wear what?\r\n');
+    return;
+  }
+
+  const itemName = args.join(' ');
+  const item = player.inventory.findItem(itemName);
+  if (!item) {
+    player.socket.write(`You do not have ${itemName}.\r\n`);
+    return;
+  }
+  player.equip(item);
+  broadcastToRoom(`${player.name} wears ${item.description}.\r\n`, player, gameManager.players);
+}
+
+export function handleRemoveCommand(gameManager: GameManager, player: Player, args: string[]) {
+  if (args.length === 0) {
+    player.socket.write('Remove what?\r\n');
+    return;
+  }
+
+  const itemName = args.join(' ');
+  const item = player.findEquippedItem(itemName);
+  if (!item) {
+    player.socket.write(`You are not wearing ${itemName}.\r\n`);
+    return;
+  }
+  player.unequip(item);
+  broadcastToRoom(`${player.name} removes ${item.description}.\r\n`, player, gameManager.players);
+}
+
+export function handleEquipmentCommand(player: Player) {
+  player.socket.write('You are wearing:\r\n');
+  Object.entries(player.equipment).forEach(([slot, item]) => {
+    if (item) {
+      player.socket.write(`- ${slot}: ${item.name}\r\n`);
+    }
+    else {
+      player.socket.write(`- ${slot}: nothing\r\n`);
+    }
+  });
+}
+
 export function handleKillCommand(gameManager: GameManager, player: Player, args: string[]) {
     const targetName = args[0]; // assuming first argument is the name of the NPC or player
     const room = gameManager.rooms.get(player.currentRoom);
