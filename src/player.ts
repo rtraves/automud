@@ -6,8 +6,7 @@ import { Item } from './item';
 import { NPC } from './npc';
 import { AC, colorize } from './ansi-colors';
 import { QuestObjective, QuestReward } from './quest';
-
-const playersDataPath = path.join(__dirname, '..', 'data', 'players');
+import { PlayerPersistence } from './player-persistence';
 
 export interface PlayerData {
   id: string;
@@ -112,7 +111,7 @@ export class Player {
   currentRoom: string;
   inventory: PlayerInventory;
   disconnected: boolean;
-  socket: net.Socket;
+  socket: net.Socket | null;
   password?: string;
   isAdmin?: boolean;
   health: number = 100;
@@ -158,7 +157,7 @@ export class Player {
     Ring: null
   };
 
-  constructor(id: string, currentRoom: string, socket: net.Socket) {
+  constructor(id: string, currentRoom: string, socket: net.Socket | null) {
     this.id = id;
     this.name = '';
     this.currentRoom = currentRoom;
@@ -166,7 +165,6 @@ export class Player {
     this.disconnected = false;
     this.socket = socket;
     this.save = this.save.bind(this);
-    
   }
   private static readonly BASE_EXP: number = 100;
 
@@ -196,54 +194,15 @@ export class Player {
   }
 
   save(): void {
-    const playerData: PlayerData = {
-      id: this.id,
-      name: this.name,
-      currentRoom: this.currentRoom,
-      inventory: {
-        items: Array.from(this.inventory.items.entries())
-      },
-      password: this.password,
-      isAdmin: this.isAdmin,
-      health: this.health,
-      maxHealth: this.maxHealth,
-      mana: this.mana,
-      stamina: this.stamina,
-      experience: this.experience,
-      gold: this.gold,
-      level: this.level,
-      attributes: this.attributes,
-      lifeSkills: this.lifeSkills,
-      equipment: this.equipment
-    };
-
-    fs.writeFileSync(`./data/players/${this.name}.json`, JSON.stringify(playerData, null, 4), 'utf-8');
+    PlayerPersistence.save(this);
   }
 
-  load(): void {
-    try {
-      const data = fs.readFileSync(`./data/players/${this.name}.json`, 'utf8');
-      const playerData: PlayerData = JSON.parse(data);
-      this.name = playerData.name;
-      this.password = playerData.password;
-      this.currentRoom = playerData.currentRoom;
-      this.inventory = new PlayerInventory();
-      this.inventory.items = new Map(playerData.inventory.items);
-      this.isAdmin = playerData.isAdmin;
-      this.health = playerData.health;
-      this.maxHealth = playerData.maxHealth;
-      this.mana = playerData.mana;
-      this.stamina = playerData.stamina;
-      this.experience = playerData.experience;
-      this.gold = playerData.gold;
-      this.level = playerData.level;
-      this.attributes = playerData.attributes;
-      this.lifeSkills = playerData.lifeSkills;
-      this.equipment = playerData.equipment;
-    } catch (err) {
-      // TODO: Add this to a log file instead of console.error
-      console.error(`Failed to load player data for ${this.name}. Error: ${err}`);
+  load(name: string, socket: net.Socket): Player | undefined {
+    const player = PlayerPersistence.load(name);
+    if (player) {
+      player.socket = socket;
     }
+    return player;
   }
 
   attemptLogin(name: string, password: string): boolean {
