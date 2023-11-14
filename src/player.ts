@@ -1,12 +1,10 @@
 import * as net from 'net';
-import * as fs from 'fs';
-import * as crypto from 'crypto';
-import * as path from 'path';
 import { Item } from './item';
 import { NPC } from './npc';
 import { AC, colorize } from './ansi-colors';
 import { QuestObjective, QuestReward } from './quest';
 import { PlayerPersistence } from './player-persistence';
+import { AuthenticationService } from './authentication-service';
 
 export interface PlayerData {
   id: string;
@@ -175,22 +173,26 @@ export class Player {
   attack(target: NPC): void {
     const damage = Math.floor(Math.random() * 10);
     target.takeDamage(damage);
-    this.socket.write(`You attack ${target.name} for ${damage} damage.\r\n`);
-    if (target.health <= 0) {
-      this.socket.write(`You killed ${target.name}!\r\n`);
+    if (this.socket) {
+      this.socket.write(`You attack ${target.name} for ${damage} damage.\r\n`);
     }
-  }
-
-  static playerExists(name: string): boolean {
-    return fs.existsSync(path.join(playersDataPath, `${name}.json`));
+    if (target.health <= 0) {
+      if (this.socket) {
+        this.socket.write(`You killed ${target.name}!\r\n`);
+      }
+    }
   }
 
   static createNewPlayer(name: string, password: string, socket: net.Socket): Player {
     const player = new Player(name, 'area1_room1', socket); // default room for new players
     player.name = name;
-    player.password = player.hashPassword(password);
+    player.password = AuthenticationService.hashPassword(password);
     player.save();
     return player;
+  }
+
+  static playerExists(name: string): boolean {
+    return PlayerPersistence.playerExists(name);
   }
 
   save(): void {
@@ -205,31 +207,29 @@ export class Player {
     return player;
   }
 
-  attemptLogin(name: string, password: string): boolean {
-    try{
-      const playerData = JSON.parse(fs.readFileSync(`./data/players/${name}.json`, 'utf-8'));
+  attemptLogin(name: string, password: string, socket: net.Socket): boolean {
+    try {
+      const player = AuthenticationService.attemptLogin(name, password, socket);
+      if (player) {
+        this.id = player.id;
+        this.name = player.name;
+        this.currentRoom = player.currentRoom;
+        this.inventory = player.inventory;
+        this.password = player.password;
+        this.socket = player.socket;
 
-      if (playerData.password !== this.hashPassword(password)) {
-        return false;
-    }
-      else {
-        this.id = playerData.id;
-        this.name = playerData.name;
-        this.currentRoom = playerData.currentRoom;
-        this.inventory = playerData.inventory;
-        this.password = playerData.password;
-  
         return true;
       }
-    } catch (err) {
+    } catch (error) {
       return false;
     }
+    return false;
   }
 
-  hashPassword(password: string): string {
-    const hash = crypto.createHash('sha256');
-    hash.update(password);
-    return hash.digest('hex');
+  writeToSocket(message: string): void {
+    if (this.socket) {
+      this.socket.write(message);
+    }
   }
 
   getPrompt(): string {
@@ -253,7 +253,9 @@ export class Player {
 
     if (level !== this.level) {
         this.level = level;
-        this.socket.write(`${AC.LightWhite}Congratulations! ${AC.White}You have reached level ${AC.Cyan}${level}.${AC.Reset}\r\n`);
+        if (this.socket) {
+          this.socket.write(`${AC.LightWhite}Congratulations! ${AC.White}You have reached level ${AC.Cyan}${level}.${AC.Reset}\r\n`);
+        }
         this.increaseAttribute('strength', 1);
         this.increaseAttribute('dexterity', 1);
         this.increaseAttribute('intelligence', 1);
@@ -272,7 +274,9 @@ export class Player {
 
   displayExperienceToNextLevel(): void {
     const expNeeded = this.experienceToNextLevel();
-    this.socket.write(`Experience needed for next level: ${expNeeded}\r\n`);
+    if (this.socket) {
+      this.socket.write(`Experience needed for next level: ${expNeeded}\r\n`);
+    }
   }
 
   quests: Quest[] = [];  // Array to hold the quests
@@ -317,7 +321,7 @@ export class Player {
       level++;
     }
 
-    if (level !== lifeSkill.level) {
+    if (level !== lifeSkill.level && this.socket) {
       lifeSkill.level = level;
       this.socket.write(`${AC.LightWhite}Congratulations! ${AC.White}Your ${lifeSkill.name} skill has reached level ${AC.Cyan}${level}.${AC.Reset}\r\n`);
     }
@@ -335,13 +339,17 @@ export class Player {
 
   displayExperienceToNextLifeSkillLevel(name: string): void {
     const expNeeded = this.experienceToNextLifeSkillLevel(name);
-    this.socket.write(`Experience needed for next ${name} level: ${expNeeded}\r\n`);
+    if (this.socket) {
+      this.socket.write(`Experience needed for next ${name} level: ${expNeeded}\r\n`);
+    }
   }
 
   equip(item: Item): void {
     const itemType = item.equipmentType;
     if (!itemType) {
-      this.socket.write(`${item.name} is not equippable.\r\n`);
+      if (this.socket) {
+        this.socket.write(`${item.name} is not equippable.\r\n`);
+      }
       return;
     }
 
@@ -353,7 +361,9 @@ export class Player {
       }
       this.inventory.removeItem(item.name, 0);
       this.equipment[itemSlot] = item;
-      this.socket.write(`You equip ${item.name}.\r\n`);
+      if (this.socket) {
+        this.socket.write(`You equip ${item.name}.\r\n`);
+      }
     }
   }
 
@@ -366,14 +376,20 @@ export class Player {
       if (existingItem && existingItem.name === item.name) {
         this.equipment[itemSlot] = null;
         this.inventory.addItem(item);
-        this.socket.write(`You unequip ${item.name}.\r\n`);
+        if (this.socket) {
+          this.socket.write(`You unequip ${item.name}.\r\n`);
+        }
       }
       else {
-        this.socket.write(`Cannot unequip ${item.name} as it is not equipped.\r\n`);
+        if (this.socket) {
+          this.socket.write(`Cannot unequip ${item.name} as it is not equipped.\r\n`);
+        }
       }
     }
     else {
-      this.socket.write(`Cannot unequip ${item.name} as it does not match any equipment slot.\r\n`);
+      if (this.socket) {
+        this.socket.write(`Cannot unequip ${item.name} as it does not match any equipment slot.\r\n`);
+      }
     }
   }
 

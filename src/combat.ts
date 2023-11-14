@@ -8,7 +8,7 @@ export function resolveCombat(attacker: Player, defender: NPC) {
   defender.takeDamage(damage);
 
   if (attacker instanceof Player) {
-    attacker.socket.write(`You dealt ${damage} damage to ${defender.name}!\r\n`);
+    attacker.writeToSocket(`You dealt ${damage} damage to ${defender.name}!\r\n`);
   }
 
   // NPC retaliation
@@ -16,7 +16,7 @@ export function resolveCombat(attacker: Player, defender: NPC) {
     const npcDamage = defender.damage;
     attacker.takeDamage(npcDamage);
     if (attacker instanceof Player) {
-      attacker.socket.write(`You took ${npcDamage} damage from ${defender.name}! You have ${attacker.health} health left.\r\n`);
+      attacker.writeToSocket(`You took ${npcDamage} damage from ${defender.name}! You have ${attacker.health} health left.\r\n`);
     }
   }
 
@@ -26,9 +26,9 @@ export function resolveCombat(attacker: Player, defender: NPC) {
     const goldDropped = Math.floor(Math.random() * (defender.goldDrop[1] - defender.goldDrop[0] + 1)) + defender.goldDrop[0];
     attacker.gold += goldDropped;
     attacker.earnExperience(defender.expValue);
-    attacker.socket.write(`You killed ${defender.name}!\r\n`);
-    attacker.socket.write(`${AC.Cyan}You gained ${AC.LightPurple}${defender.expValue}${AC.Cyan} experience and ${AC.LightYellow}${goldDropped}${AC.Cyan} gold.${AC.Reset}\r\n`);
-    attacker.socket.write('\n' + attacker.getPrompt());
+    attacker.writeToSocket(`You killed ${defender.name}!\r\n`);
+    attacker.writeToSocket(`${AC.Cyan}You gained ${AC.LightPurple}${defender.expValue}${AC.Cyan} experience and ${AC.LightYellow}${goldDropped}${AC.Cyan} gold.${AC.Reset}\r\n`);
+    attacker.writeToSocket('\n' + attacker.getPrompt());
     // Handle NPC death, e.g., drop items, respawn
   }
 

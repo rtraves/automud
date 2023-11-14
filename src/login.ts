@@ -47,8 +47,8 @@ export function handleLogin(session: Session, socket: net.Socket, input: string)
             existingPlayer = new Player(session.sessionId, 'area1_room1', socket);
             existingPlayer.name = session.providedName!;
           }
-          if (existingPlayer.attemptLogin(existingPlayer.name, inputPassword)) {
-            existingPlayer.load();
+          if (existingPlayer.attemptLogin(existingPlayer.name, inputPassword, socket)) {
+            existingPlayer.load(existingPlayer.name, socket);
             socket.write(`Welcome back, ${existingPlayer.name}!\r\n`);
             return existingPlayer; // Return the logged-in Player instance
           } else {

@@ -156,7 +156,7 @@ export class NPC {
   onPlayerEnter(player: Player): void {
     if (this.questId !== undefined) {
       if (this.questGiver && !player.hasQuest(this.questId)) {
-        player.socket.write(`\n${this.name} says: ${this.onEnterSpeak}\r\n`);
+        player.writeToSocket(`\n${this.name} says: ${this.onEnterSpeak}\r\n`);
       } 
       else if (this.isAggressive) {
         this.initiateCombat(player);

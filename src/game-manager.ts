@@ -170,12 +170,12 @@ export class GameManager {
       case CommandName.Quit:
         this.commandTimeouts.delete(player.name);
         player.save();
-        player.socket.write('Goodbye!\r\n');
-        player.socket.end();
+        player.writeToSocket('Goodbye!\r\n');
+        player.socket?.end();
         break;
       case CommandName.Say:
         const roomMessage = `${AC.LightCyan}${player.name} says: ${command.args.join(' ')}${AC.Reset}\r\n`;
-        player.socket.write(roomMessage);
+        player.writeToSocket(roomMessage);
         broadcastToRoom(roomMessage, player, this.players);
         break;
       case CommandName.Chat:
@@ -251,10 +251,10 @@ export class GameManager {
         commands.handleEquipmentCommand(player);
         break;
       default:
-        player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
+        player.writeToSocket('Unknown command. Type `help` for a list of commands.\r\n');
     }
-    if (player.socket.writable) {
-      player.socket.write('\n' + player.getPrompt());
+    if (player.socket?.writable) {
+      player.writeToSocket('\n' + player.getPrompt());
     }
   }
 };

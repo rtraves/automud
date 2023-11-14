@@ -1,4 +1,3 @@
-import * as net from 'net';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Player, PlayerData } from './player';
@@ -59,5 +58,9 @@ export class PlayerPersistence {
       console.error(`Failed to load player data for ${this.name}. Error: ${err}`);
       return undefined;
     }
+  }
+
+  static playerExists(name: string): boolean {
+    return fs.existsSync(path.join(playersDataPath, `${name}.json`));
   }
 }
