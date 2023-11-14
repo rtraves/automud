@@ -35,23 +35,7 @@ export interface Command {
     Restore = 'restore', // Admin
     Goto = 'goto', // Admin
   }
-  // Admin Commands
-  // reload (area)
-  // shutdown (server)
-  // broadcast (to all)
-  // wizinvis (admin invis)
 
-  // Builder Commands
-  // ocreate, oedit, odelete (object)
-  // rcreate, redit, rdelete (room)
-  // mcreate, medit, mdelete (mob, npc)
-  // link (rooms)
-  // unlink (rooms)
-  // add (item, npc) to (room)
-  // remove (item, npc) from (room)
-  // add, remove (item) to (npc)
-  // etc
-  
   export function parseCommand(input: string): Command {
     const words = input.split(/\s+/);
     const name = words[0].toLowerCase();
