@@ -5,7 +5,7 @@ import { handleLogin } from './login';
 import { Session } from './session';
 import { Player } from './player/player';
 import { handleLookCommand } from './commands';
-import { AC } from './ansi-colors';
+import { AC } from './services/ansi-colors';
 
 const PORT = parseInt(process.env.PORT as string, 10) || 4444;
 const gameManager = GameManager.getInstance();

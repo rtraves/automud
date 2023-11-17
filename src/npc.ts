@@ -3,7 +3,7 @@ import { findItemById } from './item-manager';
 import { Room } from './room';
 import { Player } from './player/player';
 import { ShopItem } from './shop-item';
-import { AC } from './ansi-colors';
+import { AC } from './services/ansi-colors';
 
 export interface NPCData {
   id: number;

@@ -1,10 +1,9 @@
 import * as net from 'net';
 import { Item } from '../item';
 import { NPC } from '../npc';
-import { AC, colorize } from '../ansi-colors';
 import { QuestObjective, QuestReward } from '../quest';
 import { PlayerInventory } from '.';
-import { PlayerPersistence, AuthenticationService } from '../services';
+import { PlayerPersistence, AuthenticationService, AC } from '../services';
 import { Attributes, LifeSkill, Equipment } from '.';
 
 

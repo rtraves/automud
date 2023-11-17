@@ -2,9 +2,9 @@ import { Command, CommandName } from './command-parser';
 import { GameManager } from './game-manager';
 import { Player } from './player/player';
 import { findExitByDirection } from './area-utils';
-import { broadcastToRoom } from './broadcast-utils';
+import { broadcastToRoom } from './services/broadcast-utils';
 import { Room } from './room';
-import { AC, colorize } from './ansi-colors';
+import { AC, colorize } from './services/ansi-colors';
 import { effectHandlers } from './effects';
 
 export function handleMoveCommand(gameManager: GameManager, player: Player, command: Command) {

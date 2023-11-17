@@ -1,5 +1,5 @@
 import { Player } from '.';
-import { AC, colorize } from '../ansi-colors';
+import { AC } from '../services';
 
 export class LifeSkill  {
     name: string;
