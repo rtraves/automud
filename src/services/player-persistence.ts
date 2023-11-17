@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Player, PlayerData } from './player';
+import { Player, PlayerData } from '../player/player';
 
 const playersDataPath = path.join(__dirname, '..', 'data', 'players');
 

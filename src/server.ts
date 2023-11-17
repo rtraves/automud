@@ -3,7 +3,7 @@ import { GameManager } from './game-manager';
 import { parseCommand, Command } from './command-parser';
 import { handleLogin } from './login';
 import { Session } from './session';
-import { Player } from './player';
+import { Player } from './player/player';
 import { handleLookCommand } from './commands';
 import { AC } from './ansi-colors';
 

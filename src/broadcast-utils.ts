@@ -1,4 +1,4 @@
-import { Player } from "./player";
+import { Player } from "./player/player";
 
 export function broadcastToRoom(message: string, sender: Player, players: Map<string, Player>) {
   for (const otherPlayer of players.values()) {

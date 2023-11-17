@@ -1,6 +1,6 @@
 import * as net from 'net';
 import { PlayerPersistence } from './player-persistence';
-import { Player } from './player';
+import { Player } from '../player/player';
 import * as crypto from 'crypto';
 
 export class AuthenticationService {

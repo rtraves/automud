@@ -1,6 +1,6 @@
 import { Command, CommandName } from './command-parser';
 import { GameManager } from './game-manager';
-import { Player } from './player';
+import { Player } from './player/player';
 import { findExitByDirection } from './area-utils';
 import { broadcastToRoom } from './broadcast-utils';
 import { Room } from './room';

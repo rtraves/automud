@@ -1,6 +1,6 @@
 import * as net from 'net';
 import * as path from 'path';
-import { Player } from './player';
+import { Player } from './player/player';
 import { Room } from './room';
 import { Item } from './item';
 import { loadItems } from './item-manager';

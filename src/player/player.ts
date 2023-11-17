@@ -1,38 +1,12 @@
 import * as net from 'net';
-import { Item } from './item';
-import { NPC } from './npc';
-import { AC, colorize } from './ansi-colors';
-import { QuestObjective, QuestReward } from './quest';
-import { PlayerPersistence } from './player-persistence';
-import { AuthenticationService } from './authentication-service';
+import { Item } from '../item';
+import { NPC } from '../npc';
+import { AC, colorize } from '../ansi-colors';
+import { QuestObjective, QuestReward } from '../quest';
+import { PlayerInventory } from '.';
+import { PlayerPersistence, AuthenticationService } from '../services';
+import { Attributes, LifeSkill, Equipment } from '.';
 
-export interface PlayerData {
-  id: string;
-  name: string;
-  currentRoom: string;
-  inventory: {
-    items: [string, Item[]][]
-  };
-  password?: string;
-  isAdmin?: boolean;
-  maxHealth: number;
-  health: number;
-  mana: number;
-  stamina: number;
-  experience: number;
-  gold: number;
-  level: number;
-  attributes: Attributes;
-  lifeSkills: LifeSkill[];
-  equipment: Equipment;
-}
-
-type Attributes = {
-  strength: number;
-  dexterity: number;
-  intelligence: number;
-  // ... other attributes
-}
 
 interface Quest {
   id: number;
@@ -41,66 +15,6 @@ interface Quest {
   objectives: QuestObjective[];
   rewards: QuestReward[];
   isComplete: boolean;  // Whether the quest is completed
-}
-
-type LifeSkill = {
-  name: string;
-  level: number;
-  experience: number;
-}
-
-type Equipment = {
-  [key: string]: Item | null;
-  Head: Item | null;
-  Neck: Item | null;
-  Chest: Item | null;
-  Legs: Item | null;
-  Feet: Item | null;
-  Hands: Item | null;
-  MainHand: Item | null;
-  OffHand: Item | null;
-  Ring: Item | null;
-}
-
-export class PlayerInventory {
-  items: Map<string, Item[]>;
-
-  constructor() {
-    this.items = new Map();
-  }
-
-  addItem(item: Item): void {
-    const existingItems = this.items.get(item.name);
-    if (existingItems) {
-      existingItems.push(item);
-    } else {
-      this.items.set(item.name, [item]);
-    }
-  }
-
-  removeItem(itemName: string, index: number): void {
-    const existingItems = this.items.get(itemName);
-    if (existingItems) {
-      existingItems.splice(index, 1);
-      if (existingItems.length === 0) {
-        this.items.delete(itemName);
-      }
-    }
-  }
-
-  findItem(itemName: string): Item | undefined {
-    const searchTerm = itemName.toLowerCase();
-    const itemsArray = Array.from(this.items.values()).flat();
-    return itemsArray.find((item) => 
-        item.name.toLowerCase() === searchTerm || 
-        item.keywords?.includes(searchTerm)
-    );
-  }
-
-  findItemByIndex(itemName: string, index: number): Item | undefined {
-    const existingItems = this.items.get(itemName);
-    return existingItems ? existingItems[index] : undefined;
-  }
 }
 
 export class Player {
@@ -121,28 +35,8 @@ export class Player {
   experience: number = 0;
   gold: number = 0;
   level: number = 1;
-  attributes: Attributes = {
-    strength: 5,
-    dexterity: 5,
-    intelligence: 5
-  };
-  lifeSkills: LifeSkill[] = [
-    {
-      name: 'Mining',
-      level: 1,
-      experience: 0
-    },
-    {
-      name: 'Fishing',
-      level: 1,
-      experience: 0
-    },
-    {
-      name: 'Woodcutting',
-      level: 1,
-      experience: 0
-    }
-  ];
+  attributes: Attributes;
+  lifeSkills: LifeSkill[];
   equipment: Equipment = {
     Head: null,
     Neck: null,
@@ -163,6 +57,12 @@ export class Player {
     this.disconnected = false;
     this.socket = socket;
     this.save = this.save.bind(this);
+    this.attributes = new Attributes(5, 5, 5);
+    this.lifeSkills = [
+      new LifeSkill('Mining', 1, 0, this),
+      new LifeSkill('Fishing', 1, 0, this),
+      new LifeSkill('Woodcutting', 1, 0, this),
+    ];
   }
   private static readonly BASE_EXP: number = 100;
 
@@ -301,46 +201,18 @@ export class Player {
     return this.quests.find(quest => quest.id === questId);
   }
 
-  private static readonly BASE_LIFE_SKILL_EXP: number = 100;
-
-  static expForLifeSkillLevel(level: number): number {
-    return Player.BASE_LIFE_SKILL_EXP * (level * (level + 1) * (2*level + 1) / 6);
-  }
-
+  
   gainLifeSkillExperience(resourceType: string, amount: number) {
     const lifeSkill = this.lifeSkills.find(skill => skill.name.toLowerCase() === resourceType.toLowerCase());
     if (lifeSkill) {
-      lifeSkill.experience += amount;
-      this.updateLifeSkillLevel(lifeSkill);
+      lifeSkill.gainExperience(amount);
     }
-  }
-
-  updateLifeSkillLevel(lifeSkill: LifeSkill): void {
-    let level = 1;
-    while (Player.expForLifeSkillLevel(level) <= lifeSkill.experience && level < 100) {
-      level++;
-    }
-
-    if (level !== lifeSkill.level && this.socket) {
-      lifeSkill.level = level;
-      this.socket.write(`${AC.LightWhite}Congratulations! ${AC.White}Your ${lifeSkill.name} skill has reached level ${AC.Cyan}${level}.${AC.Reset}\r\n`);
-    }
-  }
-
-  experienceToNextLifeSkillLevel(name: string): number {
-    const lifeSkill = this.lifeSkills.find(skill => skill.name === name);
-    if (lifeSkill) {
-      const nextLevelExp = Player.expForLifeSkillLevel(lifeSkill.level + 1);
-      const currentExp = lifeSkill.experience;
-      return nextLevelExp - currentExp;
-    }
-    return 0;
   }
 
   displayExperienceToNextLifeSkillLevel(name: string): void {
-    const expNeeded = this.experienceToNextLifeSkillLevel(name);
-    if (this.socket) {
-      this.socket.write(`Experience needed for next ${name} level: ${expNeeded}\r\n`);
+    const lifeSkill = this.lifeSkills.find(skill => skill.name === name);
+    if (lifeSkill && this.socket) {
+      this.socket.write(`Experience needed for next ${name} level: ${lifeSkill.experienceToNextLevel()}\r\n`);
     }
   }
 

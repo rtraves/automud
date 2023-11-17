@@ -1,5 +1,5 @@
 // Purpose: Combat-related functions maybe turn into a manager later
-import { Player } from './player';
+import { Player } from './player/player';
 import { NPC } from './npc';
 import { AC } from './ansi-colors';
 
