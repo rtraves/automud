@@ -3,9 +3,9 @@ import { GameManager } from './game-manager';
 import { parseCommand, Command } from './command-parser';
 import { handleLogin } from './login';
 import { Session } from './session';
-import { Player } from './player';
+import { Player } from './player/index';
 import { handleLookCommand } from './commands';
-import { AC } from './ansi-colors';
+import { AC } from './services/index';
 
 const PORT = parseInt(process.env.PORT as string, 10) || 4444;
 const gameManager = GameManager.getInstance();
@@ -27,7 +27,7 @@ const server = net.createServer((socket) => {
       if (sessionOrPlayer instanceof Player) {
         gameManager.players.set(sessionOrPlayer.name, sessionOrPlayer);
         handleLookCommand(sessionOrPlayer, gameManager.rooms.get(sessionOrPlayer.currentRoom)!);
-        sessionOrPlayer.socket.write('\n' + sessionOrPlayer.getPrompt());
+        sessionOrPlayer.writeToSocket('\n' + sessionOrPlayer.getPrompt());
       }
     } else if (sessionOrPlayer instanceof Player) {
       const command: Command = parseCommand(input);
@@ -38,6 +38,7 @@ const server = net.createServer((socket) => {
   socket.on('end', () => {
     if (sessionOrPlayer instanceof Player) {
       console.log(`A user (${sessionOrPlayer.name}) disconnected`);
+      gameManager.commandTimeouts.delete(sessionOrPlayer.name);
       gameManager.players.delete(sessionOrPlayer.id);
     } else {
       console.log('A user disconnected before logging in.');

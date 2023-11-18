@@ -5,6 +5,7 @@ export interface Command {
   
   export enum CommandName {
     Move = 'move',
+    Enter = 'enter',
     Look = 'look',
     Quit = 'quit',
     Say = 'say',
@@ -24,27 +25,17 @@ export interface Command {
     Fish = 'fish',
     Mine = 'mine',
     Chop = 'chop',
+    Stop = 'stop',
+    Open = 'open',
+    Wear = 'wear',
+    Remove = 'remove',
+    Weild = 'weild',
+    Equipment = 'equipment',
     Reload = 'reload', // Admin
     Restore = 'restore', // Admin
     Goto = 'goto', // Admin
   }
-  // Admin Commands
-  // reload (area)
-  // shutdown (server)
-  // broadcast (to all)
-  // wizinvis (admin invis)
 
-  // Builder Commands
-  // ocreate, oedit, odelete (object)
-  // rcreate, redit, rdelete (room)
-  // mcreate, medit, mdelete (mob, npc)
-  // link (rooms)
-  // unlink (rooms)
-  // add (item, npc) to (room)
-  // remove (item, npc) from (room)
-  // add, remove (item) to (npc)
-  // etc
-  
   export function parseCommand(input: string): Command {
     const words = input.split(/\s+/);
     const name = words[0].toLowerCase();
@@ -64,6 +55,8 @@ export interface Command {
       case 'd':
       case 'down':
         return { name: CommandName.Move, args: [name.charAt(0)] };
+      case 'enter':
+        return { name: CommandName.Enter, args };
       case 'k':
       case 'kill':
         return { name: CommandName.Kill, args };
@@ -115,6 +108,17 @@ export interface Command {
         return { name: CommandName.Mine, args};
       case 'chop':
         return { name: CommandName.Chop, args};
+      case 'stop':
+        return { name: CommandName.Stop, args: ['stop'] };
+      case 'open':
+        return { name: CommandName.Open, args};
+      case 'wear':
+        return { name: CommandName.Wear, args};
+      case 'remove':
+        return { name: CommandName.Remove, args};
+      case 'equipment':
+      case 'eq':
+        return { name: 'equipment', args };
       default:
         return { name: '', args: [] };
     }

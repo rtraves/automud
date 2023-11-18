@@ -7,9 +7,26 @@ rooms:
       You stand at the grand entrance of the Newhaven Academy, a place where many adventurers begin their journey.
       A large wooden sign reads: 'Welcome to Newhaven Academy. Learn, explore, and grow.'
       To the east, you see a pathway leading to a garden.
+    itemIds: [
+        10001, # key
+        99,
+        100,
+        2
+      ]
     exits:
       - direction: east
         roomId: area1_room2
+      - direction: south
+        roomId: test_room
+        door:
+          isOpen: false
+          isLocked: true
+          keyName: 'Test Key'
+    specialExits:
+      - name: portal
+        description: There is a shimmering portal here.
+        lookDescription: The portal is shimmering with arcane energy.
+        roomId: test_room
 
   - id: area1_room2
     title: Academy Garden
@@ -75,7 +92,6 @@ rooms:
     title: Mage's Tower
     description: |
       A place where magic users come to hone their craft. The air is thick with arcane energy.
-      A portal to the east shimmers mysteriously.
     exits:
       - direction: east
         roomId: area1_room6
@@ -111,6 +127,16 @@ rooms:
     exits:
       - direction: down
         roomId: area1_room4
+
+  - id: test_room
+    title: Test room
+    description: A room for testing.
+    specialExits:
+      - name: crack
+        hidden: true
+        description: There is a crack in the floor.
+        lookDescription: The crack is small, but you think you could squeeze through.
+        roomId: area1_room1
 
 
 npcs:

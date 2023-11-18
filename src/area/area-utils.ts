@@ -1,10 +1,9 @@
 import * as fs from 'fs';
-import { Room, Exit } from './room';
+import { Room, Exit, SpecialExit } from './index';
 import yaml from 'js-yaml';
-import { Item } from './item';
-import { findItemById } from './item-manager';
-import { NPC, NPCData } from './npc';
-import { Resource } from './resource';
+import { Item, findItemById} from '../item/index';
+import { NPC, NPCData } from '../npc/index';
+import { Resource } from '../resource/index';
 
 interface AreaData {
   npcs: NPCData[];
@@ -13,6 +12,7 @@ interface AreaData {
     title: string;
     description: string;
     exits: Exit[];
+    specialExits?: SpecialExit[];
     itemIds: number[];
     items: Item[];
     npcIds: number[];
@@ -68,7 +68,7 @@ export function loadArea(areaPath: string, itemMap: Map<number, Item>, resourceM
       }
     }
 
-    const room = new Room(roomData.id, roomData.title, roomData.description, roomData.exits as Exit[], roomData.items, roomData.npcs, itemMap, roomData.resources);
+    const room = new Room(roomData.id, roomData.title, roomData.description, roomData.exits as Exit[], roomData.specialExits as SpecialExit[], roomData.items, roomData.npcs, itemMap, roomData.resources);
     areaRooms.set(room.id, room);
   }
 

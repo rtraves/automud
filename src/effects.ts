@@ -1,5 +1,5 @@
 // effects.ts
-import { Player } from './player';
+import { Player } from './player/index';
 
 type EffectHandler = {
   [effectName: string]: (player: Player, amount: number) => void;
