@@ -1,13 +1,11 @@
 import * as net from 'net';
-import { Item } from '../item/item';
-import { NPC } from '../npc/npc';
-import { QuestObjective, QuestReward } from '../quest';
-import { PlayerInventory } from '.';
-import { PlayerPersistence, AuthenticationService, AC } from '../services';
-import { Attributes, LifeSkill, Equipment } from '.';
+import { Item } from '../item/index';
+import { NPC } from '../npc/index';
+import { QuestObjective, QuestReward } from '../quest/index';
+import { PlayerInventory, Attributes, LifeSkill, Equipment } from './index';
+import { PlayerPersistence, AuthenticationService, AC } from '../services/index';
 
-
-interface Quest {
+export interface Quest {
   id: number;
   name: string;
   description: string;
@@ -58,9 +56,9 @@ export class Player {
     this.save = this.save.bind(this);
     this.attributes = new Attributes(5, 5, 5);
     this.lifeSkills = [
-      new LifeSkill('Mining', 1, 0, this),
-      new LifeSkill('Fishing', 1, 0, this),
-      new LifeSkill('Woodcutting', 1, 0, this),
+      new LifeSkill('Mining', 1, 0),
+      new LifeSkill('Fishing', 1, 0),
+      new LifeSkill('Woodcutting', 1, 0),
     ];
   }
   private static readonly BASE_EXP: number = 100;
@@ -204,7 +202,11 @@ export class Player {
   gainLifeSkillExperience(resourceType: string, amount: number) {
     const lifeSkill = this.lifeSkills.find(skill => skill.name.toLowerCase() === resourceType.toLowerCase());
     if (lifeSkill) {
+      const oldLevel = lifeSkill.level;
       lifeSkill.gainExperience(amount);
+      if (lifeSkill.level > oldLevel && this.socket) {
+        this.socket.write(`${AC.LightWhite}Congratulations! ${AC.White}Your ${lifeSkill.name} skill has reached level ${AC.Cyan}${lifeSkill.level}.${AC.Reset}\r\n`);
+      }
     }
   }
 

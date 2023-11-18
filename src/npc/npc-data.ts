@@ -1,4 +1,4 @@
-import { ShopItem } from '../item';
+import { ShopItem } from '../item/index';
 
 export interface NPCData {
     id: number;

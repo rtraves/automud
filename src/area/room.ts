@@ -1,7 +1,7 @@
-import { Item } from "../item/item";
-import { Resource } from "../reasource/resource";
-import { NPC, NPCData } from "../npc";
-import { Player } from "../player/player";
+import { Item } from "../item/index";
+import { Resource } from "../resource/index";
+import { NPC, NPCData } from "../npc/index";
+import { Player } from "../player/index";
 
 export interface Exit {
   direction: string;

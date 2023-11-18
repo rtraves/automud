@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import yaml from 'js-yaml';
-import { Item } from './item';
+import { Item } from './index';
 
 interface ItemData {
   items: Item[];

@@ -3,9 +3,9 @@ import { GameManager } from './game-manager';
 import { parseCommand, Command } from './command-parser';
 import { handleLogin } from './login';
 import { Session } from './session';
-import { Player } from './player/player';
+import { Player } from './player/index';
 import { handleLookCommand } from './commands';
-import { AC } from './services/ansi-colors';
+import { AC } from './services/index';
 
 const PORT = parseInt(process.env.PORT as string, 10) || 4444;
 const gameManager = GameManager.getInstance();

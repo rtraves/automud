@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Player, PlayerData } from '../player/player';
+import { Player, PlayerData } from '../player/index';
 
-const playersDataPath = path.join(__dirname, '..', 'data', 'players');
+const playersDataPath = path.join(__dirname, '..', '..', 'data', 'players');
 
 export class PlayerPersistence {
   static save(player: Player): void {
@@ -27,12 +27,12 @@ export class PlayerPersistence {
       equipment: player.equipment
     };
 
-    fs.writeFileSync(`./data/players/${player.name}.json`, JSON.stringify(playerData, null, 4), 'utf-8');
+    fs.writeFileSync(path.join(playersDataPath, `${player.name}.json`), JSON.stringify(playerData, null, 4), 'utf-8');
   }
 
   static load(name: string): Player | undefined {
     try {
-      const data = fs.readFileSync(`./data/players/${name}.json`, 'utf8');
+      const data = fs.readFileSync(path.join(playersDataPath, `${name}.json`), 'utf8');
       const playerData: PlayerData = JSON.parse(data);
       const player = new Player(playerData.id, playerData.currentRoom, null);
       player.name = playerData.name;

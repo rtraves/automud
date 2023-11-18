@@ -1,5 +1,5 @@
 // resources.ts
-import { Item } from '../item/item';
+import { Item } from '../item/index';
 
 export interface DropTableItem {
     itemId: number;

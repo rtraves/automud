@@ -1,10 +1,8 @@
-import { Item } from '../item/item';
-import { findItemById } from '../item/item-manager';
-import { Room } from '../area/room';
-import { Player } from '../player/player';
-import { ShopItem } from '../item/shop-item';
-import { NPCData } from '.';
-import { AC } from '../services/ansi-colors';
+import { Item, ShopItem, findItemById } from '../item/index';
+import { Room } from '../area/index';
+import { Player } from '../player/index';
+import { NPCData } from './index';
+import { AC } from '../services/index';
 
 export class NPC {
   id: number;

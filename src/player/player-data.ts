@@ -1,5 +1,5 @@
-import { Item } from '../item/item';
-import { Attributes, LifeSkill, Equipment } from '.';
+import { Item } from '../item/index';
+import { Attributes, LifeSkill, Equipment } from './index';
 
 export interface PlayerData {
     id: string;

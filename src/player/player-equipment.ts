@@ -1,4 +1,4 @@
-import { Item } from "../item/item";
+import { Item } from "../item/index";
 
 export type Equipment = {
     [key: string]: Item | null;

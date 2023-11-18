@@ -1,10 +1,8 @@
 import { Command, CommandName } from './command-parser';
 import { GameManager } from './game-manager';
-import { Player } from './player/player';
-import { findExitByDirection } from './area/area-utils';
-import { broadcastToRoom } from './services/broadcast-utils';
-import { Room } from './area/room';
-import { AC, colorize } from './services/ansi-colors';
+import { Player } from './player/index';
+import { Room, findExitByDirection } from './area/index';
+import { broadcastToRoom, AC, colorize  } from './services/index';
 import { effectHandlers } from './effects';
 
 export function handleMoveCommand(gameManager: GameManager, player: Player, command: Command) {
@@ -203,9 +201,14 @@ export function handleLookCommand(player: Player, room: Room | undefined, args?:
     if (room) {
       player.writeToSocket(colorize(`${room.title}\r\n`, AC.Cyan));
       const hiddenSpecialExits = room.specialExits?.filter((specialExit) => specialExit.hidden);
-      const hiddenSpecialExitsDescriptions = hiddenSpecialExits?.map((specialExit) => specialExit.description).join(', ');
-      player.writeToSocket(colorize(`${room.description}${hiddenSpecialExitsDescriptions}\r\n`, AC.Green));
-
+      let roomDescription = room.description;
+      
+      if (hiddenSpecialExits && hiddenSpecialExits.length > 0) {
+        const hiddenSpecialExitsDescriptions = hiddenSpecialExits.map((specialExit) => specialExit.description).join(', ');
+        roomDescription += hiddenSpecialExitsDescriptions;
+      }
+      
+      player.writeToSocket(colorize(`${roomDescription}\r\n`, AC.Green));
       if (room.npcs && room.npcs.length > 0) {
         for (const npc of room.npcs) {
           if (npc.isEnemy) {
@@ -404,6 +407,7 @@ export function handleListCommand(gameManager: GameManager, player: Player) {
 }
 export function handleBuyCommand(gameManager: GameManager, player: Player, args: string[]) {
   const currentRoom = gameManager.rooms.get(player.currentRoom);
+  console.log(args);
   if (args.length < 3) {
       player.writeToSocket('Usage: buy [item number] from [npc name]\r\n');
       return;
@@ -425,6 +429,7 @@ export function handleBuyCommand(gameManager: GameManager, player: Player, args:
 }
 export function handleSellCommand(gameManager: GameManager, player: Player, args: string[]) {
   const currentRoom = gameManager.rooms.get(player.currentRoom);
+  console.log(args);
   if (args.length < 3) {
       player.writeToSocket('Usage: sell [item name] to [npc name]\r\n');
       return;

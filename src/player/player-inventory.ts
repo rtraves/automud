@@ -1,4 +1,4 @@
-import { Item } from "../item/item";
+import { Item } from "../item/index";
 
 export class PlayerInventory {
     items: Map<string, Item[]>;

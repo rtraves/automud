@@ -1,6 +1,6 @@
 // login.ts
 
-import { Player } from './player/player';
+import { Player } from './player/index';
 import * as net from 'net';
 import { GameManager } from './game-manager';
 import { Session } from './session';

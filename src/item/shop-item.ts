@@ -1,4 +1,4 @@
-import { Item } from './item';
+import { Item } from './index';
 
 export interface ShopItem extends Item {
   itemId: number,

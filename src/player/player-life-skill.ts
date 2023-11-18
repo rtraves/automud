@@ -1,17 +1,12 @@
-import { Player } from '.';
-import { AC } from '../services';
-
 export class LifeSkill  {
     name: string;
     level: number;
     experience: number;
-    player: Player;
 
-    constructor(name: string, level: number, experience: number, player: Player) {
+    constructor(name: string, level: number, experience: number) {
         this.name = name;
         this.level = level;
         this.experience = experience;
-        this.player = player;
     }
 
     private static readonly BASE_LIFE_SKILL_EXP: number = 100;
@@ -32,7 +27,6 @@ export class LifeSkill  {
       }
       if (newLevel !== this.level) {
         this.level = newLevel;
-        this.player.writeToSocket(`${AC.LightWhite}Congratulations! ${AC.White}Your ${this.name} skill has reached level ${AC.Cyan}${this.level}.${AC.Reset}\r\n`);
       }
     }
   
