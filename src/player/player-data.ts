@@ -1,4 +1,4 @@
-import { Item } from '../item';
+import { Item } from '../item/item';
 import { Attributes, LifeSkill, Equipment } from '.';
 
 export interface PlayerData {

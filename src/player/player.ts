@@ -1,6 +1,6 @@
 import * as net from 'net';
-import { Item } from '../item';
-import { NPC } from '../npc';
+import { Item } from '../item/item';
+import { NPC } from '../npc/npc';
 import { QuestObjective, QuestReward } from '../quest';
 import { PlayerInventory } from '.';
 import { PlayerPersistence, AuthenticationService, AC } from '../services';

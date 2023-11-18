@@ -1,9 +1,9 @@
 import { Command, CommandName } from './command-parser';
 import { GameManager } from './game-manager';
 import { Player } from './player/player';
-import { findExitByDirection } from './area-utils';
+import { findExitByDirection } from './area/area-utils';
 import { broadcastToRoom } from './services/broadcast-utils';
-import { Room } from './room';
+import { Room } from './area/room';
 import { AC, colorize } from './services/ansi-colors';
 import { effectHandlers } from './effects';
 

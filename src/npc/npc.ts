@@ -1,31 +1,10 @@
-import { Item } from './item';
-import { findItemById } from './item-manager';
-import { Room } from './room';
-import { Player } from './player/player';
-import { ShopItem } from './shop-item';
-import { AC } from './services/ansi-colors';
-
-export interface NPCData {
-  id: number;
-  name: string;
-  isEnemy: boolean;
-  description: string;
-  lookDescription?: string;
-  keywords?: string[];
-  maxHealth: number;
-  health: number;
-  damage: number;
-  itemIds?: number[];
-  respawnTime: number;
-  goldDrop?: [number, number];
-  expValue?: number;
-  isShop?: boolean;
-  shopItems?: ShopItem[];
-  onEnterSpeak?: string;
-  isAggressive?: boolean;
-  questGiver?: boolean;
-  questId?: number;
-}
+import { Item } from '../item/item';
+import { findItemById } from '../item/item-manager';
+import { Room } from '../area/room';
+import { Player } from '../player/player';
+import { ShopItem } from '../item/shop-item';
+import { NPCData } from '.';
+import { AC } from '../services/ansi-colors';
 
 export class NPC {
   id: number;

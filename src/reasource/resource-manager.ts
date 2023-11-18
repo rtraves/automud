@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import yaml from 'js-yaml';
 import { Resource, DropTableItem } from './resource';
-import { Item } from './item';
+import { Item } from '../item/item';
 
 interface ResourceData {
   resources: Resource[];

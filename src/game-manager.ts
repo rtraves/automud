@@ -1,18 +1,18 @@
 import * as net from 'net';
 import * as path from 'path';
 import { Player } from './player/player';
-import { Room } from './room';
-import { Item } from './item';
-import { loadItems } from './item-manager';
+import { Room } from './area/room';
+import { Item } from './item/item';
+import { loadItems } from './item/item-manager';
 import { CommandName, Command } from './command-parser';
 import { AC, colorize } from './services/ansi-colors';
-import { loadArea, findExitByDirection } from './area-utils';
+import { loadArea, findExitByDirection } from './area/area-utils';
 import { broadcastToRoom, broadcastToAll } from './services/broadcast-utils';
 import { Session } from './session';
 import * as commands from './commands';
-import { NPC } from './npc';
-import { Resource } from './resource';
-import { loadResources } from './resource-manager';
+import { NPC } from './npc/npc';
+import { Resource } from './reasource/resource';
+import { loadResources } from './reasource/resource-manager';
 import { resolveCombat } from './combat';
 
 export class GameManager {
