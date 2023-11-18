@@ -1,31 +1,8 @@
-import { Item } from './item';
-import { findItemById } from './item-manager';
-import { Room } from './room';
-import { Player } from './player';
-import { ShopItem } from './shop-item';
-import { AC } from './ansi-colors';
-
-export interface NPCData {
-  id: number;
-  name: string;
-  isEnemy: boolean;
-  description: string;
-  lookDescription?: string;
-  keywords?: string[];
-  maxHealth: number;
-  health: number;
-  damage: number;
-  itemIds?: number[];
-  respawnTime: number;
-  goldDrop?: [number, number];
-  expValue?: number;
-  isShop?: boolean;
-  shopItems?: ShopItem[];
-  onEnterSpeak?: string;
-  isAggressive?: boolean;
-  questGiver?: boolean;
-  questId?: number;
-}
+import { Item, ShopItem, findItemById } from '../item/index';
+import { Room } from '../area/index';
+import { Player } from '../player/index';
+import { NPCData } from './index';
+import { AC } from '../services/index';
 
 export class NPC {
   id: number;
@@ -156,7 +133,7 @@ export class NPC {
   onPlayerEnter(player: Player): void {
     if (this.questId !== undefined) {
       if (this.questGiver && !player.hasQuest(this.questId)) {
-        player.socket.write(`\n${this.name} says: ${this.onEnterSpeak}\r\n`);
+        player.writeToSocket(`\n${this.name} says: ${this.onEnterSpeak}\r\n`);
       } 
       else if (this.isAggressive) {
         this.initiateCombat(player);

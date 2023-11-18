@@ -1,18 +1,14 @@
 import * as net from 'net';
 import * as path from 'path';
-import { Player } from './player';
-import { Room } from './room';
-import { Item } from './item';
-import { loadItems } from './item-manager';
+import { Player } from './player/index';
+import { loadItems, Item } from './item/index';
 import { CommandName, Command } from './command-parser';
-import { AC, colorize } from './ansi-colors';
-import { loadArea, findExitByDirection } from './area-utils';
-import { broadcastToRoom, broadcastToAll } from './broadcast-utils';
+import { AC, broadcastToRoom, broadcastToAll  } from './services/index';
+import { Room, loadArea, findExitByDirection } from './area/index';
 import { Session } from './session';
 import * as commands from './commands';
-import { NPC } from './npc';
-import { Resource } from './resource';
-import { loadResources } from './resource-manager';
+import { NPC } from './npc/index';
+import { Resource, loadResources } from './resource/index';
 import { resolveCombat } from './combat';
 
 export class GameManager {
@@ -170,12 +166,12 @@ export class GameManager {
       case CommandName.Quit:
         this.commandTimeouts.delete(player.name);
         player.save();
-        player.socket.write('Goodbye!\r\n');
-        player.socket.end();
+        player.writeToSocket('Goodbye!\r\n');
+        player.socket?.end();
         break;
       case CommandName.Say:
         const roomMessage = `${AC.LightCyan}${player.name} says: ${command.args.join(' ')}${AC.Reset}\r\n`;
-        player.socket.write(roomMessage);
+        player.writeToSocket(roomMessage);
         broadcastToRoom(roomMessage, player, this.players);
         break;
       case CommandName.Chat:
@@ -251,10 +247,10 @@ export class GameManager {
         commands.handleEquipmentCommand(player);
         break;
       default:
-        player.socket.write('Unknown command. Type `help` for a list of commands.\r\n');
+        player.writeToSocket('Unknown command. Type `help` for a list of commands.\r\n');
     }
-    if (player.socket.writable) {
-      player.socket.write('\n' + player.getPrompt());
+    if (player.socket?.writable) {
+      player.writeToSocket('\n' + player.getPrompt());
     }
   }
 };

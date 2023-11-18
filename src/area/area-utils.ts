@@ -1,10 +1,9 @@
 import * as fs from 'fs';
-import { Room, Exit, SpecialExit } from './room';
+import { Room, Exit, SpecialExit } from './index';
 import yaml from 'js-yaml';
-import { Item } from './item';
-import { findItemById } from './item-manager';
-import { NPC, NPCData } from './npc';
-import { Resource } from './resource';
+import { Item, findItemById} from '../item/index';
+import { NPC, NPCData } from '../npc/index';
+import { Resource } from '../resource/index';
 
 interface AreaData {
   npcs: NPCData[];
