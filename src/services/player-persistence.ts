@@ -24,7 +24,7 @@ export class PlayerPersistence {
       level: player.level,
       attributes: player.attributes,
       lifeSkills: player.lifeSkills,
-      equipment: player.equipment
+      equipment: player.equipment.equipment
     };
 
     fs.writeFileSync(path.join(playersDataPath, `${player.name}.json`), JSON.stringify(playerData, null, 4), 'utf-8');
@@ -49,7 +49,7 @@ export class PlayerPersistence {
       player.level = playerData.level;
       player.attributes = playerData.attributes;
       player.lifeSkills = playerData.lifeSkills;
-      player.equipment = playerData.equipment;
+      player.equipment.equipment = playerData.equipment;
 
       return player;
     }

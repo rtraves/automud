@@ -118,7 +118,7 @@ export function handleWearCommand(gameManager: GameManager, player: Player, args
     player.writeToSocket(`You do not have ${itemName}.\r\n`);
     return;
   }
-  player.equip(item);
+  player.equipment.equip(item);
   broadcastToRoom(`${player.name} wears ${item.description}.\r\n`, player, gameManager.players);
 }
 
@@ -129,18 +129,18 @@ export function handleRemoveCommand(gameManager: GameManager, player: Player, ar
   }
 
   const itemName = args.join(' ');
-  const item = player.findEquippedItem(itemName);
+  const item = player.equipment.findEquippedItem(itemName);
   if (!item) {
     player.writeToSocket(`You are not wearing ${itemName}.\r\n`);
     return;
   }
-  player.unequip(item);
+  player.equipment.unequip(item);
   broadcastToRoom(`${player.name} removes ${item.description}.\r\n`, player, gameManager.players);
 }
 
 export function handleEquipmentCommand(player: Player) {
   player.writeToSocket('You are wearing:\r\n');
-  Object.entries(player.equipment).forEach(([slot, item]) => {
+  Object.entries(player.equipment.equipment).forEach(([slot, item]) => {
     if (item) {
       player.writeToSocket(`- ${slot}: ${item.name}\r\n`);
     }
@@ -407,7 +407,6 @@ export function handleListCommand(gameManager: GameManager, player: Player) {
 }
 export function handleBuyCommand(gameManager: GameManager, player: Player, args: string[]) {
   const currentRoom = gameManager.rooms.get(player.currentRoom);
-  console.log(args);
   if (args.length < 3) {
       player.writeToSocket('Usage: buy [item number] from [npc name]\r\n');
       return;
@@ -429,7 +428,6 @@ export function handleBuyCommand(gameManager: GameManager, player: Player, args:
 }
 export function handleSellCommand(gameManager: GameManager, player: Player, args: string[]) {
   const currentRoom = gameManager.rooms.get(player.currentRoom);
-  console.log(args);
   if (args.length < 3) {
       player.writeToSocket('Usage: sell [item name] to [npc name]\r\n');
       return;

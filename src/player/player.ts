@@ -2,7 +2,7 @@ import * as net from 'net';
 import { Item } from '../item/index';
 import { NPC } from '../npc/index';
 import { QuestObjective, QuestReward } from '../quest/index';
-import { PlayerInventory, Attributes, LifeSkill, Equipment } from './index';
+import { PlayerInventory, Attributes, LifeSkill, PlayerEquipment } from './index';
 import { PlayerPersistence, AuthenticationService, AC } from '../services/index';
 
 export interface Quest {
@@ -34,23 +34,14 @@ export class Player {
   level: number = 1;
   attributes: Attributes;
   lifeSkills: LifeSkill[];
-  equipment: Equipment = {
-    Head: null,
-    Neck: null,
-    Chest: null,
-    Legs: null,
-    Feet: null,
-    Hands: null,
-    MainHand: null,
-    OffHand: null,
-    Ring: null
-  };
+  equipment: PlayerEquipment;
 
   constructor(id: string, currentRoom: string, socket: net.Socket | null) {
     this.id = id;
     this.name = '';
     this.currentRoom = currentRoom;
     this.inventory = new PlayerInventory();
+    this.equipment = new PlayerEquipment(this.inventory, socket);
     this.disconnected = false;
     this.socket = socket;
     this.save = this.save.bind(this);
@@ -215,63 +206,5 @@ export class Player {
     if (lifeSkill && this.socket) {
       this.socket.write(`Experience needed for next ${name} level: ${lifeSkill.experienceToNextLevel()}\r\n`);
     }
-  }
-
-  equip(item: Item): void {
-    const itemType = item.equipmentType;
-    if (!itemType) {
-      if (this.socket) {
-        this.socket.write(`${item.name} is not equippable.\r\n`);
-      }
-      return;
-    }
-
-    const itemSlot = Object.keys(this.equipment).find((key) => key === itemType);
-    if (itemSlot) {
-      const existingItem = this.equipment[itemSlot];
-      if (existingItem) {
-        this.unequip(existingItem);
-      }
-      this.inventory.removeItem(item.name, 0);
-      this.equipment[itemSlot] = item;
-      if (this.socket) {
-        this.socket.write(`You equip ${item.name}.\r\n`);
-      }
-    }
-  }
-
-  unequip(item: Item): void {
-    const itemType = item.equipmentType;
-    const itemSlot = Object.keys(this.equipment).find((key) => key === itemType);
-
-    if (itemSlot) {
-      const existingItem = this.equipment[itemSlot];
-      if (existingItem && existingItem.name === item.name) {
-        this.equipment[itemSlot] = null;
-        this.inventory.addItem(item);
-        if (this.socket) {
-          this.socket.write(`You unequip ${item.name}.\r\n`);
-        }
-      }
-      else {
-        if (this.socket) {
-          this.socket.write(`Cannot unequip ${item.name} as it is not equipped.\r\n`);
-        }
-      }
-    }
-    else {
-      if (this.socket) {
-        this.socket.write(`Cannot unequip ${item.name} as it does not match any equipment slot.\r\n`);
-      }
-    }
-  }
-
-  findEquippedItem(itemName: string): Item | undefined {
-    const searchTerm = itemName.toLowerCase();
-    const equippedItems = Object.values(this.equipment).filter((item): item is Item => item !== null);
-    return equippedItems.find((item) => 
-        item.name.toLowerCase() === searchTerm || 
-        item.keywords?.includes(searchTerm)
-    );
   }
 }
