@@ -11,5 +11,3 @@ AutoMud is a MUD (Multi-User Dungeon) with optional auto-combat and built-in scr
 ```
 coming soon
 ```
-
-## Contact Us
